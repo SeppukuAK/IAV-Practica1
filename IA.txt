@@ -1,0 +1,26 @@
+Visual Studio Community 2017
+Unity 2017.3
+Extensiones de unity como Bolt,Behavior Bricks, (más adelante)
+Se debe hacer una memoria por proyecto:
+○ Cabecera con los datos de práctica y alumnos
+○ Descripción del problema/entorno/artefacto
+○ Propuesta del resolutor/agente/generador
+○ Resultados, mostrando algunas pruebas
+○ Notas sobre la implementación y referencias
+
+Evaluación:
+■ Datos identificativos completos
+■ Descripción inteligente y precisa
+■ Propuesta detallada y bien documentada
+■ Pruebas suficientemente representativas 
+
+Fichero IAVP1G01.pdf, práctica 1 del grupo 1 +
+Ejecutable IAVP1G01.exe para Windows 64bits
+con las carpetas y ficheros que hagan falta
+
+Carpeta IAVP1G01 con todas las fuentes y
+recursos del proyecto de Unity
+
+
+Da forma a las ideas con
+dibujos, ejemplos, diagramas y esquemas

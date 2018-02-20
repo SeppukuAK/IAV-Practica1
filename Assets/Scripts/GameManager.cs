@@ -129,4 +129,23 @@ public class GameManager : MonoBehaviour {
 	void Update () {
 
     }
+
+    //Se le llama cuando se pulsa a una ficha
+    public void fichaPulsada(int numFicha)
+    {
+        Debug.Log(numFicha);
+
+        int i = 0, j = 0;
+        bool encontrado = false;
+        while (!encontrado && i < 3)
+        {
+            while (!encontrado && j < 3)
+            {
+
+
+                j++;
+            }
+            i++;
+        }
+    }
 }

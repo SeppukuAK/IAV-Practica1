@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour {
 
+    //Para las coordenadas de las fichas
+  
     public static GameManager instance;
 
     int[,] tablero = new int[3,3];
@@ -130,22 +132,98 @@ public class GameManager : MonoBehaviour {
 
     }
 
+    struct Par
+    {
+        public int x;
+        public int y;
+    }
+
     //Se le llama cuando se pulsa a una ficha
     public void fichaPulsada(int numFicha)
     {
-        Debug.Log(numFicha);
 
-        int i = 0, j = 0;
-        bool encontrado = false;
-        while (!encontrado && i < 3)
+        Par posFicha, posVacia;
+        posFicha.x = posFicha.y = posVacia.x = posVacia.y = 0;
+
+        int i = 0;
+        int j = 0;
+        bool encontradaFicha = false;
+        bool encontradoVacio = false;
+
+        //Encontrar la ficha y el hueco vacio
+        while (!encontradaFicha && !encontradoVacio && i < 3)
         {
-            while (!encontrado && j < 3)
+            j = 0;
+            while (!encontradaFicha && !encontradoVacio &&j < 3)
             {
-
-
+                if (tablero[i, j] == numFicha)
+                {
+                    encontradaFicha = true;
+                    posFicha.y = j;
+                    posFicha.x = i;
+                }
+                else if (tablero[i, j] == numFicha)
+                {
+                    encontradoVacio = true;
+                    posVacia.y = j;
+                    posVacia.x = i;
+                }
                 j++;
             }
             i++;
         }
+
+        Debug.Log("TABLERO ANTES");
+
+        for (int a = 0; a < 3; a++)
+        {
+            for (int b = 0; b < 3; b++)
+            {
+                Debug.Log(tablero[a, b]);
+            }
+        }
+
+
+        if (esMovible(posFicha))
+        {
+            tablero[posFicha.x, posFicha.y] = 0;
+            tablero[posVacia.x, posVacia.y] = numFicha;
+        
+        }
+
+        Debug.Log("TABLERO DESPUES");
+
+
+        for (int a = 0; a < 3; a++)
+        {
+            for (int b = 0; b < 3; b++)
+            {
+                Debug.Log(tablero[a, b]);
+            }
+        }
+
+        updateTablero();
+
+    }
+
+    bool esMovible(Par posFicha)
+    {
+        //Comprobar izquierda
+        if (posFicha.x >= 1 && tablero[posFicha.x - 1, posFicha.y] == 0)
+            return true;
+
+        //Comprobar derecha
+        else if (posFicha.x <= 1 && tablero[posFicha.x + 1, posFicha.y] == 0)
+            return true;
+
+        //Comprobar arriba
+        else if (posFicha.y >= 1 && tablero[posFicha.x, posFicha.y - 1] == 0)
+            return true;
+
+        //Comprobar abajo
+        else if (posFicha.y <= 1 && tablero[posFicha.x, posFicha.y + 1] == 0)
+            return true;
+
+        return false;
     }
 }

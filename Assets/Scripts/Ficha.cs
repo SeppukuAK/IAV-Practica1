@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class Ficha : MonoBehaviour {
 
-    public GameObject gameManager;          //GameManager prefab to instantiate.
     int numFicha;
 
 	// Use this for initialization

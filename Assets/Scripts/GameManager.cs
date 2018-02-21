@@ -81,8 +81,11 @@ public class GameManager : MonoBehaviour {
     void updateTablero()
     {
         //Dar a los gameObjects la posición aleatoria del tablero
+
+        //Coordenada y
         for (int i = 0; i < 3; i++)
         {
+            //Coordenada x
             for (int j = 0; j < 3; j++)
             {
                 //En la matriz, el valor 0, significa que no hay ficha
@@ -129,7 +132,7 @@ public class GameManager : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-
+        comprobarVictoria();
     }
 
     struct Par
@@ -141,7 +144,6 @@ public class GameManager : MonoBehaviour {
     //Se le llama cuando se pulsa a una ficha
     public void fichaPulsada(int numFicha)
     {
-
         Par posFicha, posVacia;
         posFicha.x = posFicha.y = posVacia.x = posVacia.y = 0;
 
@@ -151,55 +153,35 @@ public class GameManager : MonoBehaviour {
         bool encontradoVacio = false;
 
         //Encontrar la ficha y el hueco vacio
-        while (!encontradaFicha && !encontradoVacio && i < 3)
+        while ((!encontradaFicha || !encontradoVacio) && i < 3)
         {
             j = 0;
-            while (!encontradaFicha && !encontradoVacio &&j < 3)
+            while ((!encontradaFicha || !encontradoVacio) && j < 3)
             {
+                Debug.Log(tablero[i, j]);
+
                 if (tablero[i, j] == numFicha)
                 {
                     encontradaFicha = true;
-                    posFicha.y = j;
-                    posFicha.x = i;
+                    posFicha.y = i;
+                    posFicha.x = j;
                 }
-                else if (tablero[i, j] == numFicha)
+                else if (tablero[i, j] == 0)
                 {
                     encontradoVacio = true;
-                    posVacia.y = j;
-                    posVacia.x = i;
+                    posVacia.y = i;
+                    posVacia.x = j;
                 }
                 j++;
             }
             i++;
         }
 
-        Debug.Log("TABLERO ANTES");
-
-        for (int a = 0; a < 3; a++)
-        {
-            for (int b = 0; b < 3; b++)
-            {
-                Debug.Log(tablero[a, b]);
-            }
-        }
-
-
         if (esMovible(posFicha))
         {
-            tablero[posFicha.x, posFicha.y] = 0;
-            tablero[posVacia.x, posVacia.y] = numFicha;
+            tablero[posFicha.y, posFicha.x] = 0;
+            tablero[posVacia.y, posVacia.x] = numFicha;
         
-        }
-
-        Debug.Log("TABLERO DESPUES");
-
-
-        for (int a = 0; a < 3; a++)
-        {
-            for (int b = 0; b < 3; b++)
-            {
-                Debug.Log(tablero[a, b]);
-            }
         }
 
         updateTablero();
@@ -209,19 +191,19 @@ public class GameManager : MonoBehaviour {
     bool esMovible(Par posFicha)
     {
         //Comprobar izquierda
-        if (posFicha.x >= 1 && tablero[posFicha.x - 1, posFicha.y] == 0)
+        if (posFicha.x >= 1 && tablero[posFicha.y , posFicha.x - 1] == 0)
             return true;
 
         //Comprobar derecha
-        else if (posFicha.x <= 1 && tablero[posFicha.x + 1, posFicha.y] == 0)
+        else if (posFicha.x <= 1 && tablero[posFicha.y, posFicha.x + 1] == 0)
             return true;
 
         //Comprobar arriba
-        else if (posFicha.y >= 1 && tablero[posFicha.x, posFicha.y - 1] == 0)
+        else if (posFicha.y >= 1 && tablero[posFicha.y-1, posFicha.x] == 0)
             return true;
 
         //Comprobar abajo
-        else if (posFicha.y <= 1 && tablero[posFicha.x, posFicha.y + 1] == 0)
+        else if (posFicha.y <= 1 && tablero[posFicha.y+1, posFicha.x] == 0)
             return true;
 
         return false;

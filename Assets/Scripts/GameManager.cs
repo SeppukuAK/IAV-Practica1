@@ -68,7 +68,7 @@ public class GameManager : MonoBehaviour
         }
         */
         //contador que mueve las fichas n veces
-        int cont = 10;
+        int cont = 1;
 
         Direccion dir = Direccion.Vacio;//Direccion a la que se tiene que mover el vacio
         Direccion dirAnt = Direccion.Vacio; //Direccion cutre y de mierda para controlar que el estado anterior no sea el contrario
@@ -137,6 +137,7 @@ public class GameManager : MonoBehaviour
 
         //IA POR ANCHURA
         tablero = Bfs(tablero, tableroIni);
+
         updateTablero();
 
     }
@@ -363,7 +364,7 @@ public class GameManager : MonoBehaviour
 
     }
 
-	void IntercambioFichasVirtual(Direccion dir, ref int[,] tab) {
+	void IntercambioFichasVirtual(Direccion dir, ref int[,] tab, Par posVaciaAux) {
 		int aux;//Auxiliar para intercambiar las posiciones del vacio y la ficha
 
 		Par fichaAdy; //ficha adyacente
@@ -374,44 +375,44 @@ public class GameManager : MonoBehaviour
 		//Izquierda
 		case Direccion.Izquierda:
 			//Colocar las fichas, sin mover
-			fichaAdy.x = posVacia.x - 1;
-			fichaAdy.y = posVacia.y;
+			fichaAdy.x = posVaciaAux.x - 1;
+			fichaAdy.y = posVaciaAux.y;
 			aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
 
-			tab[posVacia.y, posVacia.x] = aux;//Guardo en la vacia el contenido de la adyacente
+			tab[posVaciaAux.y, posVaciaAux.x] = aux;//Guardo en la vacia el contenido de la adyacente
 			tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
 			break;
 
 			//Derecha
 		case Direccion.Derecha:
 
-			fichaAdy.x = posVacia.x + 1;
-			fichaAdy.y = posVacia.y;
+			fichaAdy.x = posVaciaAux.x + 1;
+			fichaAdy.y = posVaciaAux.y;
 			aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
 
-			tab[posVacia.y, posVacia.x] = aux;//Guardo en la vacia el contenido de la adyacente
+			tab[posVaciaAux.y, posVaciaAux.x] = aux;//Guardo en la vacia el contenido de la adyacente
 			tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
 			break;
 
 			//Arriba
 		case Direccion.Arriba:
 
-			fichaAdy.x = posVacia.x;
-			fichaAdy.y = posVacia.y - 1;
+			fichaAdy.x = posVaciaAux.x;
+			fichaAdy.y = posVaciaAux.y - 1;
 			aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
 
-			tab[posVacia.y, posVacia.x] = aux;//Guardo en la vacia el contenido de la adyacente
+			tab[posVaciaAux.y, posVaciaAux.x] = aux;//Guardo en la vacia el contenido de la adyacente
 			tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
 			break;
 
 			//Abajo
 		case Direccion.Abajo:
 
-			fichaAdy.x = posVacia.x;
-			fichaAdy.y = posVacia.y + 1;
+			fichaAdy.x = posVaciaAux.x;
+			fichaAdy.y = posVaciaAux.y + 1;
 			aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
 
-			tab[posVacia.y, posVacia.x] = aux;//Guardo en la vacia el contenido de la adyacente
+			tab[posVaciaAux.y, posVaciaAux.x] = aux;//Guardo en la vacia el contenido de la adyacente
 			tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
 			break;
 
@@ -463,6 +464,26 @@ public class GameManager : MonoBehaviour
     }
 		
 
+	bool tablerosIguales(int[,] tab1, int[,] tab2)
+	{
+		int i = 0;
+		bool iguales = true;
+		while (iguales && i < 3) 
+		{
+			int j = 0;
+			while (iguales && j < 3)
+			{
+				if (tab1 [i, j] != tab2 [i, j])
+					iguales = false;
+				j++;
+			}
+				
+			i++;
+		}
+
+		return iguales;
+	}
+
     int[,] Bfs(int[,] inicio, int[,] fin)
     {
         Queue<int[,]> colaTab = new Queue<int[,]>();//Se crea la cola de nodos
@@ -489,7 +510,8 @@ public class GameManager : MonoBehaviour
 
             //Comprobamos si hemos llegado a la configuración final
             //Se ha encontrado 123456780
-            if (actual == fin)
+
+			if (tablerosIguales (actual,fin))
                 solucion = true;
 
             else
@@ -522,15 +544,9 @@ public class GameManager : MonoBehaviour
                     }
                 }
             }
-    }
+    	}
 
         return actual;
-}
-
-	
-
-
-
-
+	}
 
 }

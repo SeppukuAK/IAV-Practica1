@@ -16,6 +16,31 @@ public class GameManager : MonoBehaviour
 
     enum Direccion { Izquierda, Derecha, Arriba, Abajo, Vacio };
 
+	//BASURA
+	class Nodo{
+		public Nodo padre;
+		public Direccion dirPadre;
+		public int coste;
+
+		int[,] tab;
+		void IgualaTablero ();
+
+		void IgualaTablero(int[,] tablero){
+			for (int i = 0; i < 3; i++)
+			{
+				//Coordenada x
+				for (int j = 0; j < 3; j++)
+				{
+					tab[i, j] = tablero[i, j];
+				}
+
+			}
+		}
+
+		Nodo(int[,] tablero){
+			IgualaTablero(tab, tablero);
+		}
+	}
     //----------------------------------TIPOS PROPIOS--------------------------------------
 
 
@@ -219,7 +244,7 @@ public class GameManager : MonoBehaviour
     }
 
     //Hace una copia de un tablero en otro
-    void IgualarTablero(int[,] tab, int[,] tab2)
+    public void IgualarTablero(int[,] tab, int[,] tab2)
     {
 
         //Coordenada y
@@ -455,8 +480,81 @@ public class GameManager : MonoBehaviour
 
     int[,] Bfs(int[,] inicio, int[,] fin)
     {
-        Queue<int[,]> colaTab = new Queue<int[,]>();//Se crea la cola de nodos
-        List<int[,]> visitado = new List<int[,]>();//Se crea la lista de marcados (vector(?))
+		Queue<Nodo> colaTab = new Queue<Nodo>();//Se crea la cola de nodos
+		List<Nodo> visitado = new List<Nodo>();//Se crea la lista de marcados (vector(?))
+
+
+
+
+		// Queue<int[,]> colaTab = new Queue<int[,]>();//Se crea la cola de nodos
+		//List<int[,]> visitado = new List<int[,]>();//Se crea la lista de marcados (vector(?))
+
+		bool[] ady = new bool[4];
+		bool solucion = false;
+
+		//inicio.history = new List<Nodo>();
+		Nodo actual = new Nodo();
+		IgualarTablero(actual, inicio);
+
+		//Se añade el nodo inicial a la cola
+		colaTab.Enqueue(actual);
+
+		//Se marca como visitado el nodo inicial
+		visitado.Add(actual);
+
+		while (!solucion && colaTab.Count > 0)
+		{
+			Queue<int[,]> colaAdy = new Queue<int[,]>();//Se crea la cola de nodos
+
+			//Extraemos de la cola el nodo
+			actual = colaTab.Dequeue();
+
+			//Comprobamos si hemos llegado a la configuración final
+			//Se ha encontrado 123456780
+
+			if (TablerosIguales(actual, fin))
+				solucion = true;
+
+			else
+			{
+				Par posVacia = EncontrarVacio(actual);
+				int numAdy;
+				ady = DameMovimientosPosibles(actual, posVacia, out numAdy);
+
+				//Buscamos los adyacentes y los procesamos
+				for (int i = 0; i < ady.Length; i++)
+				{
+					Par posVaciaAux;
+					posVaciaAux.x = posVacia.x;
+					posVaciaAux.y = posVacia.y;
+
+					if (ady[i])
+					{
+						int[,] tabAdy = new int[3, 3];
+						IgualarTablero(tabAdy, actual);
+						IntercambioFichas(ref posVaciaAux, (Direccion)i, ref tabAdy);
+
+						colaAdy.Enqueue(tabAdy);
+					}
+				}
+
+				while (colaAdy.Count > 0)
+				{
+					int[,] tabAux = colaAdy.Dequeue();
+
+					if (!(visitado.Contains(tabAux)))
+					{
+						visitado.Add(tabAux);
+						colaTab.Enqueue(tabAux);
+					}
+				}
+			}
+		}
+			
+		return actual;
+
+       /* Queue<int[,]> colaTab = new Queue<int[,]>();//Se crea la cola de nodos
+       List<int[,]> visitado = new List<int[,]>();//Se crea la lista de marcados (vector(?))
 
         bool[] ady = new bool[4];
         bool solucion = false;
@@ -520,7 +618,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        return actual;
+        return actual;*/
     }
 
 

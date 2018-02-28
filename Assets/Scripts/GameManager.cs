@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 public class GameManager : MonoBehaviour
 {
+    //----------------------------------TIPOS PROPIOS--------------------------------------
+
+    //Representa posiciones del tablero (Origen Arriba - Izquierda)
     struct Par
     {
         public int x;
@@ -14,15 +16,74 @@ public class GameManager : MonoBehaviour
 
     enum Direccion { Izquierda, Derecha, Arriba, Abajo, Vacio };
 
+    //----------------------------------TIPOS PROPIOS--------------------------------------
+
+
+    //----------------------------------ATRIBUTOS--------------------------------------
+
     public static GameManager instance;
 
-    int[,] tablero = new int[3, 3];
-    int[,] tableroIni = new int[3, 3];
+    int[,] _tablero = new int[3, 3];//Lógica del juego
+    int[,] _tableroSol = new int[3, 3];//Tablero solución
+    Par _posVacia;//Posición de la ficha vacía
+	const float _distancia = 2.57f;
 
+    GameObject[] _fichas;
 
-    Par posVacia;
-    GameObject[] fichas;
-    const float distancia = 2.57f;
+    //----------------------------------ATRIBUTOS--------------------------------------
+
+    //----------------------------------CICLO DE VIDA--------------------------------------
+
+    void Start()
+    {
+        instance = this;
+
+        //Buscamos las fichas
+        _fichas = GameObject.FindGameObjectsWithTag("Ficha");
+
+        //Ordenamos el array de fichas por Nombre
+        IComparer myComparer = new NameComparer();
+        Array.Sort(_fichas, myComparer);
+
+        IniciaTablero();
+
+        //Número de iteraciones que la pieza vacía es movida
+        int iteraciones = 10;
+
+        //Mover las fichas aleatoriamente un número de iteraciones
+        while (iteraciones != 0)
+        {
+            Direccion dir = DameDirRandom();
+
+            //Muevo el tablero
+            IntercambioFichas(ref _posVacia, dir, ref _tablero);
+
+            iteraciones--;
+        }
+
+        UpdateTablero();
+
+        //TO DO: COSAS DE IA
+        //IA POR ANCHURA
+        // tablero = Bfs(tablero, tableroSol);
+
+        //updateTablero();
+
+        _tablero = Bfs(_tablero,_tableroSol);
+
+        UpdateTablero();
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+ 
+    }
+
+    //----------------------------------CICLO DE VIDA--------------------------------------
+
+    //----------------------------------FUNCIONES AUXILIARES--------------------------------------
 
     //Ordena una lista de GameObjects por su nombre
     public class NameComparer : IComparer
@@ -34,146 +95,249 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void Start()
+	//Método que inicializa el tablero a la posición resultado
+	void IniciaTablero()
+	{
+		//Tablero por defecto {1,2,3,4,5,6,7,8,0} 
+		for (int i = 0; i < 3; i++)
+			for (int j = 0; j < 3; j++)
+				_tableroSol[i, j] = _tablero[i,j] = i * 3 + j + 1;
+
+
+		_tableroSol[2, 2] = _tablero[2, 2] =  0;
+
+		_posVacia.x = 2;
+		_posVacia.y = 2;
+	}
+
+    //Devuelve una dirección random y correcta de movimiento de la ficha vacia
+    Direccion DameDirRandom()
     {
-        instance = this;
-        //Buscamos las fichas
-        fichas = GameObject.FindGameObjectsWithTag("Ficha");
-
-        //Ordenamos el array de fichas por Nombre
-        IComparer myComparer = new NameComparer();
-        Array.Sort(fichas, myComparer);
-
-        //Tablero por defecto {1,2,3,4,5,6,7,8,0} 
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                tableroIni[i, j] = tablero[i,j] = i * 3 + j + 1;
-            }
-        }
-		tableroIni[2, 2] = tablero[2, 2] =  0;
-
-        posVacia.x = 2;
-        posVacia.y = 2;
-
-        //updateTablero(ref tableroIni);
-
-        /*
-        for (int i = 0; i < 10; i++)
-        {
-            int random = UnityEngine.Random.Range(1, 9);
-
-            fichaPulsada(random);
-        }
-        */
-        //contador que mueve las fichas n veces
-        int cont = 1;
-
         Direccion dir = Direccion.Vacio;//Direccion a la que se tiene que mover el vacio
-        Direccion dirAnt = Direccion.Vacio; //Direccion cutre y de mierda para controlar que el estado anterior no sea el contrario
 
-        while (cont != 0)
+        //Primero miramos cuantos movimientos son posibles
+        int numMovPosibles = 0;
+        bool[] ady = DameMovimientosPosibles(_tablero, _posVacia, out numMovPosibles);
+
+        //Generamos un random entre los posibles
+        int random = UnityEngine.Random.Range(0, numMovPosibles);
+
+        //Encontramos el random
+        int i = 0; int aux = 0;
+        bool encontrado = false;
+        while (!encontrado)
         {
-            //Debug.Log("Para contador = " + cont + "El Vacio es: " + posVacia.y + ":" + posVacia.x);
-            //Debug.Log("Ficha: " + posVacia.y + ":" + posVacia.x);
+            //Si la dirección es posible
+            if (ady[i])
+            {
+                //Si es el random que toca
+                if (aux == random)
+                {
+                    encontrado = true;
+                    dir = (Direccion)i;
 
-            //Se genera el random de mierda
-            int random = UnityEngine.Random.Range(0, 4);
-            dir = (Direccion)random;
+                }
 
-         //   Debug.Log("Direccion actual: " + dir);
-
-          //  Debug.Log("Direccion anterior: " + dirAnt);
-
-
-            //Si se puede mover la vacia a la izquierda y no he movido antes a la derecha
-            //Izquierda
-            if (VaciaMovible(posVacia, dir) && dir == Direccion.Izquierda && dirAnt != Direccion.Derecha) {
-                Debug.Log("hola he entrado izquierda");
-
-                dirAnt = Direccion.Izquierda;
-                IntercambioFichas(dir, ref tablero);
+                //Si todavía no es el random que toca
+                else
+                    aux++;
             }
 
-            //Derecha
-            else if (VaciaMovible(posVacia, dir) && dir == Direccion.Derecha && dirAnt != Direccion.Izquierda) {
-                Debug.Log("hola he entrado derecha");
-
-                dirAnt = Direccion.Derecha;
-                IntercambioFichas(dir, ref tablero); 
-			}
-
-
-            //Arriba
-            else if (VaciaMovible(posVacia, dir) && dir == Direccion.Arriba && dirAnt != Direccion.Abajo) {
-                Debug.Log("hola he entrado arriba");
-
-                dirAnt = Direccion.Arriba;
-                IntercambioFichas(dir, ref tablero);
-			}
-
-            //Abajo
-            else if (VaciaMovible(posVacia, dir) && dir == Direccion.Abajo && dirAnt != Direccion.Arriba) {
-                Debug.Log("hola he entrado abajo");
-
-                dirAnt = Direccion.Abajo;
-                IntercambioFichas(dir, ref tablero);
-            }
-
-            else if ((dir == Direccion.Izquierda && dirAnt == Direccion.Derecha) || (dir == Direccion.Derecha && dirAnt == Direccion.Izquierda) ||
-                (dir == Direccion.Arriba && dirAnt == Direccion.Abajo) || (dir == Direccion.Abajo && dirAnt == Direccion.Arriba)) {
-                Debug.Log("No he podido entrar porque la direccion es " + dir + "y la direccion anterior es" + dirAnt);
-
-            }
-            cont--;
-
+            i++;
         }
 
-
-
-
-        updateTablero();
-
-        //IA POR ANCHURA
-        tablero = Bfs(tablero, tableroIni);
-
-        updateTablero();
+        return dir;
 
     }
 
-
-
-
-    //Devuelve si la ficha vacia es movible en la direccion d
-    bool VaciaMovible(Par posVacia, Direccion d)
+    //Intercambia el vacío con la ficha que apunte la direccion. El ultimo parámetro indica si modifica el tablero de juego
+    void IntercambioFichas(ref Par posVacia, Direccion dir, ref int[,] tab)
     {
+        Par fichaAdy; //ficha adyacente
+
+        switch (dir)
+        {
+            //Izquierda
+            case Direccion.Izquierda:
+                //Calculamos posición de adyacente
+                fichaAdy.x = posVacia.x - 1;
+                fichaAdy.y = posVacia.y;
+
+                //Intercambiamos las posiciones
+                tab[posVacia.y, posVacia.x] = tab[fichaAdy.y, fichaAdy.x];//Guardo en la vacia el contenido de la adyacente
+                tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
+
+                posVacia.x--;
+
+                break;
+
+            //Derecha
+            case Direccion.Derecha:
+                //Calculamos posición de adyacente
+                fichaAdy.x = posVacia.x + 1;
+                fichaAdy.y = posVacia.y;
+
+                //Intercambiamos las posiciones
+                tab[posVacia.y, posVacia.x] = tab[fichaAdy.y, fichaAdy.x];//Guardo en la vacia el contenido de la adyacente
+                tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
+
+                posVacia.x++;
+
+                break;
+
+            //Arriba
+            case Direccion.Arriba:
+                //Calculamos posición de adyacente
+                fichaAdy.x = posVacia.x;
+                fichaAdy.y = posVacia.y - 1;
+
+                //Intercambiamos las posiciones
+                tab[posVacia.y, posVacia.x] = tab[fichaAdy.y, fichaAdy.x];//Guardo en la vacia el contenido de la adyacente
+                tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
+
+                posVacia.y--;
+
+                break;
+
+            //Abajo
+            case Direccion.Abajo:
+                //Calculamos posición de adyacente
+                fichaAdy.x = posVacia.x;
+                fichaAdy.y = posVacia.y + 1;
+
+                //Intercambiamos las posiciones
+                tab[posVacia.y, posVacia.x] = tab[fichaAdy.y, fichaAdy.x];//Guardo en la vacia el contenido de la adyacente
+                tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
+
+                posVacia.y++;
+
+                break;
+
+        }
+
+
+    }
+
+    //Hace una copia de un tablero en otro
+    void IgualarTablero(int[,] tab, int[,] tab2)
+    {
+
+        //Coordenada y
+        for (int i = 0; i < 3; i++)
+        {
+            //Coordenada x
+            for (int j = 0; j < 3; j++)
+            {
+                tab[i, j] = tab2[i, j];
+            }
+
+        }
+
+    }
+
+    //Método que devuelve si dos mátrices son iguales
+    bool TablerosIguales(int[,] tab1, int[,] tab2)
+    {
+        int i = 0;
+        bool iguales = true;
+        while (iguales && i < 3)
+        {
+            int j = 0;
+            while (iguales && j < 3)
+            {
+                if (tab1[i, j] != tab2[i, j])
+                    iguales = false;
+                j++;
+            }
+
+            i++;
+        }
+
+        return iguales;
+    }
+
+    //Devuelve las coordenadas de la ficha vacía
+    Par EncontrarVacio(int[,] tab)
+    {
+        Par posVaciaAux;
+        posVaciaAux.x = posVaciaAux.y = 0;
+
+        bool encontrado = false;
+        int i = 0;
+        while (!encontrado && i < 3)
+        {
+            int j = 0;
+            while (!encontrado && j < 3)
+            {
+                if (tab[i, j] == 0)
+                {
+                    encontrado = true;
+                    posVaciaAux.x = j;
+                    posVaciaAux.y = i;
+                }
+                j++;
+            }
+            i++;
+        }
+
+        return posVaciaAux;
+    }
+
+    //Devuelve todos los movimientos que puede hacer una posVacia y el número de posibles en un parámetro out
+    bool[] DameMovimientosPosibles(int[,] tab, Par posVaciaAux, out int numAdy)
+    {
+        bool[] direcciones = new bool[4];
+        numAdy = 0;
+
         //Comprobar izquierda
-        if (d == Direccion.Izquierda && posVacia.x >= 1)   //Compruebo si puedo mover la vacía  
-            return true;
+        if ((posVaciaAux.x >= 1))
+        {
+            direcciones[0] = true;
+            numAdy++;
+        }
+        else
+            direcciones[0] = false;
 
 
         //Comprobar derecha
-        else if (d == Direccion.Derecha && posVacia.x <= 1)
-            return true;
-
+        if ((posVaciaAux.x <= 1))
+        {
+            direcciones[1] = true;
+            numAdy++;
+        }
+        else
+            direcciones[1] = false;
 
         //Comprobar arriba
-        else if (d == Direccion.Arriba && posVacia.y >= 1)
-            return true;
+        if ((posVaciaAux.y >= 1))
+        {
+            direcciones[2] = true;
+            numAdy++;
+        }
+        else
+            direcciones[2] = false;
 
 
         //Comprobar abajo
-        else if (d == Direccion.Abajo && posVacia.y <= 1)
-            return true;
+        if ((posVaciaAux.y <= 1))
+        {
+            direcciones[3] = true;
+            numAdy++;
+        }
+        else
+            direcciones[3] = false;
 
-
-        return false;
+        return direcciones;
     }
 
 
+    //----------------------------------FUNCIONES AUXILIARES--------------------------------------
+
+
+    //---------------------------REPRESENTACIÓN GAMEOBJECTS----------------------------------------
+
     //Updatea la posición de los gameObjects a los correspondientes a la lógica del tablero
-    void updateTablero()
+    void UpdateTablero()
     {
 
         //Coordenada y
@@ -183,54 +347,28 @@ public class GameManager : MonoBehaviour
             for (int j = 0; j < 3; j++)
             {
                 //En la matriz, el valor 0, significa que no hay ficha
-                if (tablero[i, j] != 0)
-                    colocaFicha(j - 1, i - 1, fichas[tablero[i, j] - 1]);
+                if (_tablero[i, j] != 0)
+                    ColocaFicha(j - 1, i - 1, _fichas[_tablero[i, j] - 1]);
             }
 
         }
 
     }
-
 
     //Recibe unas coordenadas del tablero y un gameObject y coloca el gameObject en la posición correspondiente al tablero
-    void colocaFicha(int x, int y, GameObject ficha)
+    void ColocaFicha(int x, int y, GameObject ficha)
     {
-        ficha.transform.position = new Vector3(x * distancia, -y * distancia, 0);
+        ficha.transform.position = new Vector3(x * _distancia, -y * _distancia, 0);
 
     }
 
-    //Comprueba si el puzzle se ha resuelto
-    bool comprobarVictoria()
-    {
-        int i = 0;
-        int contador = 8;
-        while (contador > 0 && i < 3)
-        {
-            int j = 0;
-            while (contador > 0 && j < 3)
-            {
-                if (tablero[i, j] == i * 3 + j + 1)
-                    contador--;
+    //---------------------------REPRESENTACIÓN GAMEOBJECTS----------------------------------------
 
-                else
-                    contador = -1;
-                j++;
-            }
-            i++;
-        }
 
-        return (contador == 0);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (comprobarVictoria())
-            Debug.Log("HAS GANADO");
-    }
+    //---------------------------MOVER FICHA----------------------------------------
 
     //Se le llama cuando se pulsa a una ficha, mueve la ficha si es adyacente al hueco vacío
-    public void fichaPulsada(int numFicha)
+    public void FichaPulsada(int numFicha)
     {
         Par posFicha;
         posFicha.x = posFicha.y = 0;
@@ -246,7 +384,7 @@ public class GameManager : MonoBehaviour
             while (!encontradaFicha && j < 3)
             {
 
-                if (tablero[i, j] == numFicha)
+                if (_tablero[i, j] == numFicha)
                 {
                     encontradaFicha = true;
                     posFicha.y = i;
@@ -257,232 +395,63 @@ public class GameManager : MonoBehaviour
             i++;
         }
 
-        if (esMovible(posFicha))
+        if (EsMovible(posFicha))
         {
-            tablero[posFicha.y, posFicha.x] = 0;
-            tablero[posVacia.y, posVacia.x] = numFicha;
+            _tablero[posFicha.y, posFicha.x] = 0;
+            _tablero[_posVacia.y, _posVacia.x] = numFicha;
 
             //La nueva posición vacía es donde estaba la ficha pulsada
-            posVacia = posFicha;
+            _posVacia = posFicha;
+
+            //TO DO: Pasa algo si hay victoria
+            ComprobarVictoria();
 
         }
 
-        updateTablero();
+        UpdateTablero();
 
     }
-
-
-	void IgualarTablero(int [,] tab, int [,] tab2)
-	{
-
-		//Coordenada y
-		for (int i = 0; i < 3; i++)
-		{
-			//Coordenada x
-			for (int j = 0; j < 3; j++)
-			{
-				tab [i, j] = tab2 [i, j];
-			}
-
-		}
-
-	}
-    
 
     //Devuelve true si la ficha puede moverse
-    bool esMovible(Par posFicha)
+    bool EsMovible(Par posFicha)
     {
-        return (posFicha.x == posVacia.x && (Mathf.Abs(posFicha.y - posVacia.y) == 1) //Arriba y abajo
-            || posFicha.y == posVacia.y && (Mathf.Abs(posFicha.x - posVacia.x) == 1)); //Izquierda y derecha
+        return (posFicha.x == _posVacia.x && (Mathf.Abs(posFicha.y - _posVacia.y) == 1) //Arriba y abajo
+            || posFicha.y == _posVacia.y && (Mathf.Abs(posFicha.x - _posVacia.x) == 1)); //Izquierda y derecha
 
     }
 
+    //Comprueba si el puzzle se ha resuelto
+    bool ComprobarVictoria()
+    {
+        int i = 0;
+        int contador = 8;
+        while (contador > 0 && i < 3)
+        {
+            int j = 0;
+            while (contador > 0 && j < 3)
+            {
+                if (_tablero[i, j] == i * 3 + j + 1)
+                    contador--;
+
+                else
+                    contador = -1;
+                j++;
+            }
+            i++;
+        }
+
+        return (contador == 0);
+    }
+
+
+    //---------------------------MOVER FICHA----------------------------------------
+
+    //---------------------------BOTONES--------------------------------------------
     public void OnClick() {
         //GenerarTableroInicial ();
         //updateTableroInicial ();
     }
-
-
-    void IntercambioFichas(Direccion dir, ref int[,] tab) {
-        int aux;//Auxiliar para intercambiar las posiciones del vacio y la ficha
-
-        Par fichaAdy; //ficha adyacente
-        fichaAdy.x = 0;
-        fichaAdy.y = 0;
-
-        switch (dir) {
-            //Izquierda
-            case Direccion.Izquierda:
-                //Colocar las fichas, sin mover
-                fichaAdy.x = posVacia.x - 1;
-                fichaAdy.y = posVacia.y;
-                aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
-
-                tab[posVacia.y, posVacia.x] = aux;//Guardo en la vacia el contenido de la adyacente
-                tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
-                posVacia.x--;
-                break;
-
-            //Derecha
-            case Direccion.Derecha:
-
-                fichaAdy.x = posVacia.x + 1;
-                fichaAdy.y = posVacia.y;
-                aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
-
-                tab[posVacia.y, posVacia.x] = aux;//Guardo en la vacia el contenido de la adyacente
-                tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
-                posVacia.x++;
-                break;
-
-            //Arriba
-            case Direccion.Arriba:
-
-                fichaAdy.x = posVacia.x;
-                fichaAdy.y = posVacia.y - 1;
-                aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
-
-                tab[posVacia.y, posVacia.x] = aux;//Guardo en la vacia el contenido de la adyacente
-                tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
-                posVacia.y--;
-                break;
-
-            //Abajo
-            case Direccion.Abajo:
-
-                fichaAdy.x = posVacia.x;
-                fichaAdy.y = posVacia.y + 1;
-                aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
-
-                tab[posVacia.y, posVacia.x] = aux;//Guardo en la vacia el contenido de la adyacente
-                tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
-                posVacia.y++;
-                break;
-
-        }
-
-
-    }
-
-	void IntercambioFichasVirtual(Direccion dir, ref int[,] tab, Par posVaciaAux) {
-		int aux;//Auxiliar para intercambiar las posiciones del vacio y la ficha
-
-		Par fichaAdy; //ficha adyacente
-		fichaAdy.x = 0;
-		fichaAdy.y = 0;
-
-		switch (dir) {
-		//Izquierda
-		case Direccion.Izquierda:
-			//Colocar las fichas, sin mover
-			fichaAdy.x = posVaciaAux.x - 1;
-			fichaAdy.y = posVaciaAux.y;
-			aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
-
-			tab[posVaciaAux.y, posVaciaAux.x] = aux;//Guardo en la vacia el contenido de la adyacente
-			tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
-			break;
-
-			//Derecha
-		case Direccion.Derecha:
-
-			fichaAdy.x = posVaciaAux.x + 1;
-			fichaAdy.y = posVaciaAux.y;
-			aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
-
-			tab[posVaciaAux.y, posVaciaAux.x] = aux;//Guardo en la vacia el contenido de la adyacente
-			tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
-			break;
-
-			//Arriba
-		case Direccion.Arriba:
-
-			fichaAdy.x = posVaciaAux.x;
-			fichaAdy.y = posVaciaAux.y - 1;
-			aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
-
-			tab[posVaciaAux.y, posVaciaAux.x] = aux;//Guardo en la vacia el contenido de la adyacente
-			tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
-			break;
-
-			//Abajo
-		case Direccion.Abajo:
-
-			fichaAdy.x = posVaciaAux.x;
-			fichaAdy.y = posVaciaAux.y + 1;
-			aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
-
-			tab[posVaciaAux.y, posVaciaAux.x] = aux;//Guardo en la vacia el contenido de la adyacente
-			tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
-			break;
-
-		}
-
-
-	}
-
-	Par EncontrarVacio(int[,] tab){
-		Par posVaciaAux;
-		posVaciaAux.x = posVaciaAux.y = 0;
-
-		bool encontrado = false;
-		int i = 0;
-		while (!encontrado && i < 3) {
-			int j = 0;
-			while (!encontrado && j < 3) 
-			{
-				if (tab [i, j] == 0) {
-					encontrado = true;
-					posVaciaAux.x = j;
-					posVaciaAux.y = i;
-				}
-				j++;
-			}
-			i++;
-		}
-
-		return posVaciaAux;
-	}
-
-	bool[] Adyacentes(int[,] tab, Par posVaciaAux) {
-        bool[] direcciones = new bool[4];
-
-
-        //Comprobar izquierda
-		direcciones[0] = (posVaciaAux.x >= 1);
-
-        //Comprobar derecha
-		direcciones[1] = (posVaciaAux.x <= 1);
-
-        //Comprobar arriba
-		direcciones[2] = (posVaciaAux.y >= 1);
-
-        //Comprobar abajo
-		direcciones[3] = (posVaciaAux.y <= 1);
-
-        return direcciones;
-    }
-		
-
-	bool tablerosIguales(int[,] tab1, int[,] tab2)
-	{
-		int i = 0;
-		bool iguales = true;
-		while (iguales && i < 3) 
-		{
-			int j = 0;
-			while (iguales && j < 3)
-			{
-				if (tab1 [i, j] != tab2 [i, j])
-					iguales = false;
-				j++;
-			}
-				
-			i++;
-		}
-
-		return iguales;
-	}
+    //---------------------------BOTONES--------------------------------------------
 
     int[,] Bfs(int[,] inicio, int[,] fin)
     {
@@ -493,16 +462,17 @@ public class GameManager : MonoBehaviour
         bool solucion = false;
 
         //inicio.history = new List<Nodo>();
-		int[,] actual = new int[3,3];
-		IgualarTablero (actual, inicio);
+        int[,] actual = new int[3, 3];
+        IgualarTablero(actual, inicio);
 
-		//Se añade el nodo inicial a la cola
-		colaTab.Enqueue(actual);
+        //Se añade el nodo inicial a la cola
+        colaTab.Enqueue(actual);
 
-		//Se marca como visitado el nodo inicial
-		visitado.Add(actual);
+        //Se marca como visitado el nodo inicial
+        visitado.Add(actual);
 
-        while (!solucion && colaTab.Count > 0) {
+        while (!solucion && colaTab.Count > 0)
+        {
             Queue<int[,]> colaAdy = new Queue<int[,]>();//Se crea la cola de nodos
 
             //Extraemos de la cola el nodo
@@ -511,23 +481,27 @@ public class GameManager : MonoBehaviour
             //Comprobamos si hemos llegado a la configuración final
             //Se ha encontrado 123456780
 
-			if (tablerosIguales (actual,fin))
+            if (TablerosIguales(actual, fin))
                 solucion = true;
 
             else
             {
-				Par posVaciaAux = EncontrarVacio (actual);
-
-				ady = Adyacentes(actual,posVaciaAux);
+                Par posVacia = EncontrarVacio(actual);
+                int numAdy;
+                ady = DameMovimientosPosibles(actual, posVacia, out numAdy);
 
                 //Buscamos los adyacentes y los procesamos
                 for (int i = 0; i < ady.Length; i++)
                 {
+                    Par posVaciaAux;
+                    posVaciaAux.x = posVacia.x;
+                    posVaciaAux.y = posVacia.y;
+
                     if (ady[i])
                     {
-						int[,] tabAdy= new int[3,3];
-						IgualarTablero (tabAdy, actual);
-						IntercambioFichasVirtual((Direccion)i, ref tabAdy, posVaciaAux);
+                        int[,] tabAdy = new int[3, 3];
+                        IgualarTablero(tabAdy, actual);
+                        IntercambioFichas(ref posVaciaAux, (Direccion)i, ref tabAdy);
 
                         colaAdy.Enqueue(tabAdy);
                     }
@@ -544,9 +518,10 @@ public class GameManager : MonoBehaviour
                     }
                 }
             }
-    	}
+        }
 
         return actual;
-	}
+    }
+
 
 }

@@ -18,7 +18,7 @@ public class Ficha : MonoBehaviour {
 
     private void OnMouseDown()
     {
-        GameManager.instance.fichaPulsada(numFicha);
+        GameManager.instance.FichaPulsada(numFicha);
 
     }   
 }

@@ -49,14 +49,14 @@ public class GameManager : MonoBehaviour
         {
             for (int j = 0; j < 3; j++)
             {
-                tableroIni[i, j] = i * 3 + j + 1;
+                tableroIni[i, j] = tablero[i,j] = i * 3 + j + 1;
             }
         }
-        tableroIni[2, 2] = 0;
+		tableroIni[2, 2] = tablero[2, 2] =  0;
+
         posVacia.x = 2;
         posVacia.y = 2;
 
-        tablero = tableroIni;
         //updateTablero(ref tableroIni);
 
         /*
@@ -67,9 +67,6 @@ public class GameManager : MonoBehaviour
             fichaPulsada(random);
         }
         */
-
-        int[,] inicio = new int[3, 3];
-
         //contador que mueve las fichas n veces
         int cont = 10;
 
@@ -104,7 +101,8 @@ public class GameManager : MonoBehaviour
                 Debug.Log("hola he entrado derecha");
 
                 dirAnt = Direccion.Derecha;
-                IntercambioFichas(dir, ref tablero); }
+                IntercambioFichas(dir, ref tablero); 
+			}
 
 
             //Arriba
@@ -112,7 +110,8 @@ public class GameManager : MonoBehaviour
                 Debug.Log("hola he entrado arriba");
 
                 dirAnt = Direccion.Arriba;
-                IntercambioFichas(dir, ref tablero); }
+                IntercambioFichas(dir, ref tablero);
+			}
 
             //Abajo
             else if (VaciaMovible(posVacia, dir) && dir == Direccion.Abajo && dirAnt != Direccion.Arriba) {
@@ -131,10 +130,14 @@ public class GameManager : MonoBehaviour
 
         }
 
+
+
+
         updateTablero();
 
         //IA POR ANCHURA
-        Bfs(tablero, tableroIni);
+        tablero = Bfs(tablero, tableroIni);
+        updateTablero();
 
     }
 
@@ -268,7 +271,7 @@ public class GameManager : MonoBehaviour
     }
 
 
-    /*void updateTableroInicial()
+	void IgualarTablero(int [,] tab, int [,] tab2)
 	{
 
 		//Coordenada y
@@ -277,15 +280,13 @@ public class GameManager : MonoBehaviour
 			//Coordenada x
 			for (int j = 0; j < 3; j++)
 			{
-				//En la matriz, el valor 0, significa que no hay ficha
-				if (tableroInicial[i, j] != 0)
-					colocaFicha(j - 1, i - 1, fichas[tableroInicial[i, j] - 1]);
+				tab [i, j] = tab2 [i, j];
 			}
 
 		}
 
 	}
-    */
+    
 
     //Devuelve true si la ficha puede moverse
     bool esMovible(Par posFicha)
@@ -362,53 +363,107 @@ public class GameManager : MonoBehaviour
 
     }
 
-    bool[] Adyacentes() {
+	void IntercambioFichasVirtual(Direccion dir, ref int[,] tab) {
+		int aux;//Auxiliar para intercambiar las posiciones del vacio y la ficha
+
+		Par fichaAdy; //ficha adyacente
+		fichaAdy.x = 0;
+		fichaAdy.y = 0;
+
+		switch (dir) {
+		//Izquierda
+		case Direccion.Izquierda:
+			//Colocar las fichas, sin mover
+			fichaAdy.x = posVacia.x - 1;
+			fichaAdy.y = posVacia.y;
+			aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
+
+			tab[posVacia.y, posVacia.x] = aux;//Guardo en la vacia el contenido de la adyacente
+			tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
+			break;
+
+			//Derecha
+		case Direccion.Derecha:
+
+			fichaAdy.x = posVacia.x + 1;
+			fichaAdy.y = posVacia.y;
+			aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
+
+			tab[posVacia.y, posVacia.x] = aux;//Guardo en la vacia el contenido de la adyacente
+			tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
+			break;
+
+			//Arriba
+		case Direccion.Arriba:
+
+			fichaAdy.x = posVacia.x;
+			fichaAdy.y = posVacia.y - 1;
+			aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
+
+			tab[posVacia.y, posVacia.x] = aux;//Guardo en la vacia el contenido de la adyacente
+			tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
+			break;
+
+			//Abajo
+		case Direccion.Abajo:
+
+			fichaAdy.x = posVacia.x;
+			fichaAdy.y = posVacia.y + 1;
+			aux = tab[fichaAdy.y, fichaAdy.x]; //ficha de la izquierda
+
+			tab[posVacia.y, posVacia.x] = aux;//Guardo en la vacia el contenido de la adyacente
+			tab[fichaAdy.y, fichaAdy.x] = 0;//Guardo en la adyacente el valor 0
+			break;
+
+		}
+
+
+	}
+
+	Par EncontrarVacio(int[,] tab){
+		Par posVaciaAux;
+		posVaciaAux.x = posVaciaAux.y = 0;
+
+		bool encontrado = false;
+		int i = 0;
+		while (!encontrado && i < 3) {
+			int j = 0;
+			while (!encontrado && j < 3) 
+			{
+				if (tab [i, j] == 0) {
+					encontrado = true;
+					posVaciaAux.x = j;
+					posVaciaAux.y = i;
+				}
+				j++;
+			}
+			i++;
+		}
+
+		return posVaciaAux;
+	}
+
+	bool[] Adyacentes(int[,] tab, Par posVaciaAux) {
         bool[] direcciones = new bool[4];
 
+
         //Comprobar izquierda
-        if (posVacia.x >= 1)   //Compruebo si puedo mover la vacía         
-            direcciones[0] = true;
+		direcciones[0] = (posVaciaAux.x >= 1);
 
         //Comprobar derecha
-        if (posVacia.x <= 1)
-            direcciones[1] = true;
+		direcciones[1] = (posVaciaAux.x <= 1);
 
         //Comprobar arriba
-        if (posVacia.y >= 1)
-            direcciones[2] = true;
+		direcciones[2] = (posVaciaAux.y >= 1);
 
         //Comprobar abajo
-         if (posVacia.y <= 1)
-            direcciones[3] = true;
+		direcciones[3] = (posVaciaAux.y <= 1);
 
         return direcciones;
     }
+		
 
-    void ModificaTablero(bool[] ady, ref int[,] tab)
-    {
-        if (ady[0]) //Hay un adyacentes a la izquierda
-        {
-            IntercambioFichas(Direccion.Izquierda, ref tab);
-        }
-
-        if (ady[1]) //Hay un adyacentes a la izquierda
-        {
-            IntercambioFichas(Direccion.Derecha, ref tab);
-        }
-
-        if (ady[2]) //Hay un adyacentes a la izquierda
-        {
-            IntercambioFichas(Direccion.Arriba, ref tab);
-        }
-
-        if (ady[3]) //Hay un adyacentes a la izquierda
-        {
-            IntercambioFichas(Direccion.Abajo, ref tab);
-        }
-
-    }
-
-    void Bfs(int[,] inicio, int[,] fin)
+    int[,] Bfs(int[,] inicio, int[,] fin)
     {
         Queue<int[,]> colaTab = new Queue<int[,]>();//Se crea la cola de nodos
         List<int[,]> visitado = new List<int[,]>();//Se crea la lista de marcados (vector(?))
@@ -416,49 +471,60 @@ public class GameManager : MonoBehaviour
         bool[] ady = new bool[4];
         bool solucion = false;
 
-
-        //Se añade el nodo inicial a la cola
-        colaTab.Enqueue(inicio);
-
-        //Se marca como visitado el nodo inicial
-        visitado.Add(inicio);
-
         //inicio.history = new List<Nodo>();
+		int[,] actual = new int[3,3];
+		IgualarTablero (actual, inicio);
+
+		//Se añade el nodo inicial a la cola
+		colaTab.Enqueue(actual);
+
+		//Se marca como visitado el nodo inicial
+		visitado.Add(actual);
 
         while (!solucion && colaTab.Count > 0) {
-            Queue<int[,]> colaAux = new Queue<int[,]>();//Se crea la cola de nodos
+            Queue<int[,]> colaAdy = new Queue<int[,]>();//Se crea la cola de nodos
 
             //Extraemos de la cola el nodo
-            int[,] actual = colaTab.Dequeue();
+            actual = colaTab.Dequeue();
 
             //Comprobamos si hemos llegado a la configuración final
             //Se ha encontrado 123456780
             if (actual == fin)
                 solucion = true;
 
-            ady = Adyacentes();
-
-            //Buscamos los adyacentes y los procesamos
-            for (int i = 0; i < ady.Length; i++) {
-                if (ady[i])
-                {
-                    int[,] tabAdy = inicio;
-                    ModificaTablero(ady, ref tabAdy);
-                    colaAux.Enqueue(tabAdy);
-                }
-             }
-
-            while(colaAux.Count > 0)
+            else
             {
-                int[,] tabAux = colaAux.Dequeue();
+				Par posVaciaAux = EncontrarVacio (actual);
 
-                if (!(visitado.Contains(tabAux)))
+				ady = Adyacentes(actual,posVaciaAux);
+
+                //Buscamos los adyacentes y los procesamos
+                for (int i = 0; i < ady.Length; i++)
                 {
-                    visitado.Add(tabAux);                   
-                    colaTab.Enqueue(tabAux);
+                    if (ady[i])
+                    {
+						int[,] tabAdy= new int[3,3];
+						IgualarTablero (tabAdy, actual);
+						IntercambioFichasVirtual((Direccion)i, ref tabAdy, posVaciaAux);
+
+                        colaAdy.Enqueue(tabAdy);
+                    }
+                }
+
+                while (colaAdy.Count > 0)
+                {
+                    int[,] tabAux = colaAdy.Dequeue();
+
+                    if (!(visitado.Contains(tabAux)))
+                    {
+                        visitado.Add(tabAux);
+                        colaTab.Enqueue(tabAux);
+                    }
                 }
             }
     }
+
+        return actual;
 }
 
 	

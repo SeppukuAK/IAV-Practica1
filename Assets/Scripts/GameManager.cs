@@ -2,9 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+
+
+
 
 public class GameManager : MonoBehaviour
 {
+
     //----------------------------------TIPOS PROPIOS--------------------------------------
 
     //Representa posiciones del tablero (Origen Arriba - Izquierda)
@@ -14,37 +19,46 @@ public class GameManager : MonoBehaviour
         public int y;
     }
 
-    enum Direccion { Izquierda, Derecha, Arriba, Abajo, Vacio };
+    public enum Direccion { Izquierda, Derecha, Arriba, Abajo, Vacio };
 
-	//BASURA
-	class Nodo{
-		public Nodo padre;
-		public Direccion dirPadre;
-		public int coste;
+	public class Nodo{
+		private int[,] _tab; //Configuración
+		private Nodo _padre;
+		private Direccion _operador; //Operador que se aplicó al nodo padre para generar este nodo hijo
+		private int _coste; //Coste de la ruta: Desde la raíz hasta aquí
 
-		int[,] tab;
-		void IgualaTablero ();
+		public Nodo(int[,] tab, Nodo padre, Direccion operador, int coste){
+			_tab = new int[3,3];
+			IgualarTablero(ref _tab, tab);
+			_padre = padre;
+			_operador = operador;
+			_coste = coste;
 
-		void IgualaTablero(int[,] tablero){
-			for (int i = 0; i < 3; i++)
-			{
-				//Coordenada x
-				for (int j = 0; j < 3; j++)
-				{
-					tab[i, j] = tablero[i, j];
-				}
-
-			}
 		}
 
-		Nodo(int[,] tablero){
-			IgualaTablero(tab, tablero);
+		public int[,] getTablero(){
+			return _tab;
 		}
+
+		public int getCoste(){
+			return _coste;
+		}
+
+		public Nodo getPadre(){
+			return _padre;
+		}
+
+		public Direccion getOperador(){
+			return _operador;
+		}
+
 	}
     //----------------------------------TIPOS PROPIOS--------------------------------------
 
 
     //----------------------------------ATRIBUTOS--------------------------------------
+
+	public Text _text;
 
     public static GameManager instance;
 
@@ -54,6 +68,7 @@ public class GameManager : MonoBehaviour
 	const float _distancia = 2.57f;
 
     GameObject[] _fichas;
+	Stack <Direccion> colaDir;
 
     //----------------------------------ATRIBUTOS--------------------------------------
 
@@ -72,33 +87,24 @@ public class GameManager : MonoBehaviour
 
         IniciaTablero();
 
-        //Número de iteraciones que la pieza vacía es movida
-        int iteraciones = 10;
-
-        //Mover las fichas aleatoriamente un número de iteraciones
-        while (iteraciones != 0)
-        {
-            Direccion dir = DameDirRandom();
-
-            //Muevo el tablero
-            IntercambioFichas(ref _posVacia, dir, ref _tablero);
-
-            iteraciones--;
-        }
-
         UpdateTablero();
-
-        //TO DO: COSAS DE IA
-        //IA POR ANCHURA
-        // tablero = Bfs(tablero, tableroSol);
-
-        //updateTablero();
-
-        _tablero = Bfs(_tablero,_tableroSol);
-
-        UpdateTablero();
-
     }
+
+
+	void AvanzaUnPaso()
+	{
+		if (colaDir.Count > 0) 
+		{
+			Direccion dir = colaDir.Pop();
+			IntercambioFichas (ref _posVacia,dir,ref _tablero);
+			UpdateTablero ();
+
+			Invoke ("AvanzaUnPaso",0.5f) ;
+
+		}
+
+
+	}
 
     // Update is called once per frame
     void Update()
@@ -243,22 +249,23 @@ public class GameManager : MonoBehaviour
 
     }
 
-    //Hace una copia de un tablero en otro
-    public void IgualarTablero(int[,] tab, int[,] tab2)
-    {
 
-        //Coordenada y
-        for (int i = 0; i < 3; i++)
-        {
-            //Coordenada x
-            for (int j = 0; j < 3; j++)
-            {
-                tab[i, j] = tab2[i, j];
-            }
+	//Hace una copia de un tablero en otro
+	static void IgualarTablero(ref int[,] tab, int[,] tab2)
+	{
 
-        }
+		//Coordenada y
+		for (int i = 0; i < 3; i++)
+		{
+			//Coordenada x
+			for (int j = 0; j < 3; j++)
+			{
+				tab[i, j] = tab2[i, j];
+			}
 
-    }
+		}
+
+	}
 
     //Método que devuelve si dos mátrices son iguales
     bool TablerosIguales(int[,] tab1, int[,] tab2)
@@ -472,154 +479,145 @@ public class GameManager : MonoBehaviour
     //---------------------------MOVER FICHA----------------------------------------
 
     //---------------------------BOTONES--------------------------------------------
-    public void OnClick() {
+    public void OnClickBFS() {
+
+		Nodo nodo = Bfs(_tablero,_tableroSol);
+
+		//COLITA
+
+		colaDir = new Stack <Direccion> ();
+
+		if (nodo != null) {
+
+			while (nodo.getPadre () != null) {
+				Debug.Log (nodo.getOperador ());
+				colaDir.Push (nodo.getOperador ());
+				nodo = nodo.getPadre ();
+			}
+
+
+			UpdateTablero ();
+
+			Invoke ("AvanzaUnPaso", 0.5f);
+		} 
+
+		//DEMASIADOS MOVIMIENTOS
+		else {
+			_text.text = "LO SIENTO BFS ES UNA MIERDA";
+
+		}
+
         //GenerarTableroInicial ();
         //updateTableroInicial ();
     }
+
+	public void OnClickAleatorio()
+	{
+		IniciaTablero();
+
+		//Número de iteraciones que la pieza vacía es movida
+		int iteraciones = 15;
+
+		//Mover las fichas aleatoriamente un número de iteraciones
+		while (iteraciones != 0)
+		{
+			Direccion dir = DameDirRandom();
+
+			//Muevo el tablero
+			IntercambioFichas(ref _posVacia, dir, ref _tablero);
+
+			iteraciones--;
+		}
+
+		UpdateTablero();
+
+
+	}
     //---------------------------BOTONES--------------------------------------------
 
-    int[,] Bfs(int[,] inicio, int[,] fin)
+    Nodo Bfs(int[,] inicio, int[,] fin)
     {
-		Queue<Nodo> colaTab = new Queue<Nodo>();//Se crea la cola de nodos
-		List<Nodo> visitado = new List<Nodo>();//Se crea la lista de marcados (vector(?))
+		int[,] actual = new int[3,3];
+		IgualarTablero(ref actual, inicio);
 
+		//Nodo raíz
+		Nodo nodo = new Nodo (actual, null, Direccion.Vacio, 0);
 
+		if (TablerosIguales (nodo.getTablero (), fin)) 
+			return nodo;
 
-
-		// Queue<int[,]> colaTab = new Queue<int[,]>();//Se crea la cola de nodos
-		//List<int[,]> visitado = new List<int[,]>();//Se crea la lista de marcados (vector(?))
-
-		bool[] ady = new bool[4];
-		bool solucion = false;
-
-		//inicio.history = new List<Nodo>();
-		Nodo actual = new Nodo();
-		IgualarTablero(actual, inicio);
+		Queue<Nodo> cola = new Queue<Nodo>();//Se crea la cola de nodos
 
 		//Se añade el nodo inicial a la cola
-		colaTab.Enqueue(actual);
+		cola.Enqueue(nodo);
 
-		//Se marca como visitado el nodo inicial
-		visitado.Add(actual);
+		Hashtable visitados = new Hashtable();
 
-		while (!solucion && colaTab.Count > 0)
+		bool[] ady = new bool[4];
+
+
+		while (nodo.getCoste() <=7) 
 		{
-			Queue<int[,]> colaAdy = new Queue<int[,]>();//Se crea la cola de nodos
+			if (cola.Count <= 0)
+				return null;
 
-			//Extraemos de la cola el nodo
-			actual = colaTab.Dequeue();
+			//Extraemos la cola del nodo
+			nodo = cola.Dequeue ();
 
-			//Comprobamos si hemos llegado a la configuración final
-			//Se ha encontrado 123456780
+			//La añadimos a visitados
+			visitados.Add (nodo.getTablero().GetHashCode(),null);
 
-			if (TablerosIguales(actual, fin))
-				solucion = true;
+			//---------------------
+			//Encontramos todas las configuraciones posibles
+			Queue<Nodo> colaAdy = new Queue<Nodo>();//Se crea la cola de nodos
 
-			else
+			Par posVacia = EncontrarVacio(nodo.getTablero());
+
+			int numAdy;
+			ady = DameMovimientosPosibles(nodo.getTablero(), posVacia, out numAdy);
+
+			//Buscamos los adyacentes y los procesamos
+			for (int i = 0; i < ady.Length; i++) 
 			{
-				Par posVacia = EncontrarVacio(actual);
-				int numAdy;
-				ady = DameMovimientosPosibles(actual, posVacia, out numAdy);
+				Par posVaciaAux;
+				posVaciaAux.x = posVacia.x;
+				posVaciaAux.y = posVacia.y;
 
-				//Buscamos los adyacentes y los procesamos
-				for (int i = 0; i < ady.Length; i++)
-				{
-					Par posVaciaAux;
-					posVaciaAux.x = posVacia.x;
-					posVaciaAux.y = posVacia.y;
+				if (ady [i]) {
+					int[,] tabAdy = new int[3, 3];
+					Direccion dir = (Direccion)i;
+					IgualarTablero (ref tabAdy, nodo.getTablero());
+					IntercambioFichas (ref posVaciaAux, dir, ref tabAdy);
 
-					if (ady[i])
-					{
-						int[,] tabAdy = new int[3, 3];
-						IgualarTablero(tabAdy, actual);
-						IntercambioFichas(ref posVaciaAux, (Direccion)i, ref tabAdy);
-
-						colaAdy.Enqueue(tabAdy);
-					}
-				}
-
-				while (colaAdy.Count > 0)
-				{
-					int[,] tabAux = colaAdy.Dequeue();
-
-					if (!(visitado.Contains(tabAux)))
-					{
-						visitado.Add(tabAux);
-						colaTab.Enqueue(tabAux);
-					}
+					Nodo aux = new Nodo (tabAdy, nodo, dir, nodo.getCoste () + 1);
+					colaAdy.Enqueue (aux);
 				}
 			}
+
+
+			//---------------------
+
+			while (colaAdy.Count > 0) 
+			{
+				Nodo nodoAux = colaAdy.Dequeue();
+
+				if (!cola.Contains(nodoAux) && !visitados.Contains (nodoAux.getTablero())) 
+				{
+					if (TablerosIguales (nodoAux.getTablero(), fin)) 
+						return nodoAux;
+
+					cola.Enqueue (nodoAux);
+
+				}
+
+			}
+
+
 		}
-			
-		return actual;
 
-       /* Queue<int[,]> colaTab = new Queue<int[,]>();//Se crea la cola de nodos
-       List<int[,]> visitado = new List<int[,]>();//Se crea la lista de marcados (vector(?))
-
-        bool[] ady = new bool[4];
-        bool solucion = false;
-
-        //inicio.history = new List<Nodo>();
-        int[,] actual = new int[3, 3];
-        IgualarTablero(actual, inicio);
-
-        //Se añade el nodo inicial a la cola
-        colaTab.Enqueue(actual);
-
-        //Se marca como visitado el nodo inicial
-        visitado.Add(actual);
-
-        while (!solucion && colaTab.Count > 0)
-        {
-            Queue<int[,]> colaAdy = new Queue<int[,]>();//Se crea la cola de nodos
-
-            //Extraemos de la cola el nodo
-            actual = colaTab.Dequeue();
-
-            //Comprobamos si hemos llegado a la configuración final
-            //Se ha encontrado 123456780
-
-            if (TablerosIguales(actual, fin))
-                solucion = true;
-
-            else
-            {
-                Par posVacia = EncontrarVacio(actual);
-                int numAdy;
-                ady = DameMovimientosPosibles(actual, posVacia, out numAdy);
-
-                //Buscamos los adyacentes y los procesamos
-                for (int i = 0; i < ady.Length; i++)
-                {
-                    Par posVaciaAux;
-                    posVaciaAux.x = posVacia.x;
-                    posVaciaAux.y = posVacia.y;
-
-                    if (ady[i])
-                    {
-                        int[,] tabAdy = new int[3, 3];
-                        IgualarTablero(tabAdy, actual);
-                        IntercambioFichas(ref posVaciaAux, (Direccion)i, ref tabAdy);
-
-                        colaAdy.Enqueue(tabAdy);
-                    }
-                }
-
-                while (colaAdy.Count > 0)
-                {
-                    int[,] tabAux = colaAdy.Dequeue();
-
-                    if (!(visitado.Contains(tabAux)))
-                    {
-                        visitado.Add(tabAux);
-                        colaTab.Enqueue(tabAux);
-                    }
-                }
-            }
-        }
-
-        return actual;*/
-    }
+		return null;
 
 
+
+	}
 }

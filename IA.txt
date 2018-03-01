@@ -24,3 +24,491 @@ recursos del proyecto de Unity
 
 Da forma a las ideas con
 dibujos, ejemplos, diagramas y esquemas
+
+
+
+//---ENFOQUE DE RESOLUTOR---
+
+Resolutor -> Resuelve puzles o tareas complejas
+"Piensa racionalmente"
+Problema --> Resolutor --> Solucion
+
+Todo sistema con IA lo tratamos como un agente:
+-Los datos de entrada son percepciones que el agente recibe con sus sensores
+-Los datos de salida son acciones que el agente realiza con sus actuadores
+-El marco de trabajo es el entorno que habita el agente
+
+Hay que usar el enfoque que más ayude al proyecto:
+-Por ejemplo podemos ver toda IA como un Generador.
+
+
+//---MARCO DE TRABAJO---
+
+Se define siempre igual, sea en el mundo real o artificial, incluso en videojuegos:
+*Tipo de problemas: Cómo son los datos de entrada
+*Tipo de soluciones: Cómo son los datos de salida
+*Dominio de trabajo: Cuáles son las restricciones que aplican a los posibles problemas y soluciones.
+*Medida de éxito: Qué nivel de éxito tiene una resolución
+
+//---TIPOS DE RESOLUTORES---
+
+*Se suele necesitar resolutores racionales:
+-Tratan de dar soluciones correctas a los problemas
+-Intenta optimizar la medida de éxito.
+-Racionalidad no es perfección ni omnisciencia, los intentos pueden fallar.
+
+*La medida de éxito se define pensado en el significado real para el proyecto y no sólo para el resolutor. Ejemplos:
+-Robot-soldado. Valorado por las bajas que causa
+-Robot-avion-bombardero. Valorado por ahorrar combustible.
+
+
+*Un resolutor racional tiene en cuenta el problema planteado y cualquier otra información que esté a su alcance:
+-Información propia (implícita o explícita). La que incluye por defecto el diseñador del resolutor.
+-Información adquirida mediante aprendizaje.
+
+*El resolutor es más autónomo cuanto menos dependiente sea de su información propia:
+-Igual que un ser humano al crecer, no necesita tanto de sus instintos básicos con los que nace
+
+
+*Cierto tipo de problema, admite resolutores que den 1 única solución, varias o ninguna.
+	-Cuando hay varias, se pueden obtener automaticamente o de manera interactiva.
+
+*Un resolutor es determinista si la respuesta que nos da sólo depende del problema concreto al que se enfrenta:
+	-El no-determinismo puede venir por usar algún factor aleatorio.
+	-Factor que puede ser perfectamente racinal(EJ: Evitar predictibilidad en la IA de un juego)
+
+
+*En el enfoque de agente o en computación distribuida es posible tener más de un resolutor abordando un mismo problema
+
+*Si tenemos varios resolutores, hay diversas configuraciones posibles:
+-Resolución competitiva. De forma concurrente nos quedamos con el de mayor éxito.
+-Resolución cooperativa. Se comparte información, se trabaja en diferentes partes del problema, etc.
+
+
+*Las restricciones temporales y de cómputo estimulan la IA
+*Un resolutor en tiempo real debe ofrecen soluciones (parciales al menos) en un invervalo de tiempo muy corto:
+	-Entre 0.2(reacción simple) y 0.4(reconocimiento) segundos
+
+*El resolutor es interactivo si reacciona a cambios dinámicos en el problema
+
+
+//---MODELOS DE RESOLUTORES---
+
+● Resolutor reflejo simple
+	○ No usa ninguna información salvo la del problema
+
+● Resolutor reflejo basado en modelos
+	○ Tiene información explícita sobre cómo es el
+	dominio de trabajo para completar la del problema
+
+● Resolutor basado en objetivos
+	○ Tiene información explícita sobre cómo deben ser
+	las soluciones
+
+● Resolutor basado en utilidad
+	○ Tiene información explícita sobre cómo es la
+	medida de éxito del marco de trabajo
+
+* Información propia puede no ser perfecta, puede haber aprendizaje
+
+
+//---TIPOS DE PROBLEMAS---
+
+● Una característica muy importante del
+problema es su visibilidad
+	○ Completamente visible, tenemos la información
+	○ Parcialmente visible, hay parte que desconocemos
+	○ Invisible, desconocemos el problema totalmente
+	pero aún así es posible resolverlo “a ciegas”
+	(Ej. con varios intentos y aprendizaje)
+
+● En el enfoque de agente los
+problemas visibles se llaman
+entornos observables
+
+
+● Además del determinismo del resolutor, nos
+interesa el del problema
+	○ Determinista, cada pareja problema-solución tiene
+	un único valor de éxito
+	○ Estocástico, un mismo problema-solución tiene
+	distinto éxito, según distribución de probabilidades
+	○ No determinista, similar a estocástico pero sin
+	probabilidades, un problema-solución tiene distinto
+	éxito y se intentará que todos sean “aceptables”
+
+● El problema es incierto cuando es
+	○ Estocástico, o...
+	○ Determinista y parcialmente visible
+
+
+
+● Si antes hablábamos de varios resolutores,
+todavía es más común encontrarnos con
+varios problemas
+	○ Los problemas son secuenciales si van uno detrás de
+	otro pero son independientes entre sí
+		■ ¡Esto permite realizar aprendizaje!
+	○ Los problemas son episódicos si la solución dada a
+	problemas previos afecta a los siguientes
+		■ Esto se puede ver como un meta-problema a
+		resolver por el resolutor, que deberá retener en
+		su memoria cierta información entre problemas
+
+
+//---Dominios de trabajo---
+
+● Hay diversas formas de representar
+computacionalmente los problemas,
+las soluciones y sus relaciones
+	○ Representación atómica
+		■ Caja negra sin estructura interna
+		(Ej. un valor enumerado)
+	○ Representación factorizada
+		■ Compuesta de una serie de factores
+		(Ej. valores booleanos, numéricos, etc.)
+	○ Representación estructurada
+		■ Basada en objetos con factores y relaciones
+		con otros objetos (a su vez estructurados…)
+
+
+//---RESUMEN---
+● Adoptamos el enfoque Resolutor, como
+podríamos tomar el de Agente o Generador
+● El marco de trabajo son problemas,
+soluciones, dominio y medida de éxito
+● Los resolutores racionales pueden ser
+autónomos, deterministas, en tiempo real,
+interactivos…
+● De los problemas también nos interesa el
+determinismo, la visibilidad, la
+incertidumbre… y la representación interna
+
+
+
+
+
+
+
+
+2. busqueda en el espacio de estados
+
+
+Siendo un resolutor, para encontrar la realidad :se donde estoy y donde está la salida, tengo que encontrar el camino
+
+
+--------RESOLUCIÓN MEDIANTE BÚSQUEDA--------
+
+
+
+● El resolutor reflejo simple es ideal…
+	○ Para cada problema PX tiene la solución SX
+	○ ...En caso de que tenga espacio y tiempo para aprender
+
+● Si sabemos algo sobre la solución es mejor usar un resolutor basado en objetivos
+	○ Por ahora asumimos una representación atómica de los problemas, las soluciones y sus relaciones
+	○ Y también que la solución es una secuencia fija de operadores aplicados para resolver el problema: pasar de una configuración inicial a una objetivo
+	○ ConfInicial → op1  = Conf1→ … ---> opN  = ConfObjetivo
+
+● Un resolutor basado en objetivos ignora la
+medida de éxito y se fía de su objetivo
+	○ La formulación del objetivo es crítica, y esta sí se
+	hace en base al problema y a la medida del éxito
+● Una vez fijado el objetivo hay que escoger
+qué configuraciones y operadores usar para
+representar el dominio de trabajo
+	○ Esta formulación del dominio también es vital
+	○ ¡Supone un ejercicio de abstracción!
+
+● ¿Cómo elegir entre varios operadores
+posibles (igual de “buenos” o sin valor)?
+	○ Explorando las configuraciones resultantes, y los
+	posibles operadores (y configuraciones) siguientes
+	○ Asumimos que el problema es completamente
+	visible y el dominio de trabajo es conocido,
+	determinista y discreto (cantidad siempre finita de
+	acciones posibles) 
+
+Formulación
+(objetivo y dominio)
+
+Búsqueda
+(de configuración
+inicial a objetivo)
+
+Ejecución
+(de la solución,
+si se desea)
+
+
+--------FORMULACION DEL DOMINIO DE TRABAJO--------
+
+● Lo primero es definir el problema
+	○ Configuraciones posibles, empezando por la inicial
+	○ Operadores posibles, con una función para conocer
+	los aplicables a una determinada configuración
+	○ Modelo de transición, función que devuelve la
+	configuración resultante de aplicar un cierto
+	operador a una configuración concreta
+	○ Prueba de objetivo, función que indica si una cierta
+	configuración es objetivo (pueden serlo varias)
+	○ Coste de ruta, función que asigna un valor
+	numérico a cada ruta (asumiendo que es la suma de
+	los costes no negativos de cada transición)
+
+¿Y qué es exactamente una ruta?
+	○ La configuración inicial, los operadores y el modelo
+	de transición definen implícitamente un grafo
+	dirigido con todas las configuraciones alcanzables
+	(espacio de búsqueda o de estados)
+	○ Una ruta en este espacio es cualquier secuencia de
+	configuraciones conectadas por operadores
+
+
+--------EJEMPLO--------
+● El “juego” de la aspiradora
+	○ Un mundo con 2 casillas, A y B
+		■ Puede o no salir polvo
+	○ Un robot-aspiradora
+	como NPC (con su IA)
+		■ Sabe en qué casilla
+		está y si tiene polvo
+		■ Puede aspirar,
+		moverse a la
+		izquierda o a la
+		derecha
+
+● Para formular el dominio, hay que definir muy bien el problema
+	○ Configuraciones, si hay N casillas, hay Nconfiguraciones posibles del robot x 2N
+	 del polvo
+		■ Para N=2, son 8 configuraciones distintas
+		■ La inicial será el robot en A, y polvo en A y B
+	○ Operadores hay 3, izquierda, derecha y aspirar
+	○ Modelo de transición, es obvio (moverse hacia fuera
+	o aspirar sin polvo no tiene efecto alguno)
+	○ Prueba de objetivo, comprobar que no hay polvo enninguna de las N casillas (este es nuestro concepto de “tener la casa limpia”)
+	○ Coste de ruta, es habitual considerar que cadatransición cuesta 1 y así el coste de la rutacoincidirá con el número de pasos de la misma
+
+● En este ejemplo hasta es posible visualizare l espacio de búsqueda completo
+	○ Suelen ser inabarcables,incluso infinitos
+
+
+--------BUSQUEDA DE SOLUCIONES--------
+(Resumido)
+*Una vez formulado el objetivo y el dominio, el resolutor tiene que resolver.
+*Se construye un árbol de búsqueda:
+	-Los nodos representan configuraciones y las ramas operadores
+	-El nodo raíz tiene la configuración inicial
+	-Se examinan los nodos 1 a 1, si pasa la prueba de objetivo, se expande (transformando la configuracion) y generando nodos hijos.
+
+//Devuelve solución o fallo
+función BUSCA-ÁRBOL:  
+{
+	-Inicializa frontera a la configuración inicial
+
+	while()
+	{
+		if(frontera == null)
+			return fallo;
+
+		nodo = frontera;
+		frontera.pop();
+
+	
+		if (nodo == configuración objetivo)
+			return solución;
+
+		Expandir nodo: añadir hijos a la frontera
+
+	}
+
+}
+
+Deberíamos evitar nodos repetidos: Manteniendo conjunto de nodos explorados
+
+//Devuelve solución o fallo
+función BUSCA-GRAFO:
+{
+	frontera = new Frontera();
+	frontera.push(configuración inicial);
+
+	//-Inicializa conjunto explorado a vacío
+	explotado = new Explorado();
+	
+
+	while()
+	{
+		if(frontera == null)
+			return fallo;
+
+		nodo = frontera;
+		frontera.pop();
+
+		if (nodo == configuración objetivo)
+			return solución;
+
+		explorado.push(nodo);
+
+		Expandir nodo: añadir hijos a la frontera no explorados
+
+
+
+	}
+
+}
+
+
+--------Infraestructura--------
+
+*Se necesita una infraestructura para sostener el arbol de búsqueda que se va generando para los algoritmos de búsqueda.
+
+*Cada nodo es una EDA que contiene:
+	-La configuración;
+	-Referencia al nodo Padre (salvo la raíz)
+	-Operador que se aplicó al nodo padre para generar este nodo hijo (salvo la raíz)
+	-Coste de ruta. Desde la raiz hasta aquí
+
+*Es necesaria:
+	-Una función de expandir nodos
+	-Una cola para la frontera:
+		ºFIFO (Cola)
+		ºPila
+		ºPriorityQueue
+
+*Para el conjunto de nodos explorado se utiliza una tabla Hash.
+
+--------Medida del éxito en búsquedas--------
+
+*Se pueden usar distintos algoritmos para la selección del nodo que debemos elegir primero para expandir.
+
+*El nivel de éxito de estos algoritmos se pueden medir de varias formas:
+-Completitud. Encuentra la solución
+-Optimalidad. Encuentra la solución con el menor coste de ruta de todas.
+-Complejidad temporal. Segundos del procesador
+-Complejidad espacia. Espacio que ocupa
+
+*Complejidad:
+	-Suma de vértices y aristas, si conozco el grafo completo
+	-Factor de ramificación R. Máximo número de hijos de un nodo.
+	-Profundidad P. Mínimo número de pasos hasta un nodo objetivo.
+	-Profunidad M. Profundidad máxima
+
+Esto es para árboles de busqueda.
+Con los grafos depende de lo redundante que sean las rutas
+
+
+--------Resumen--------
+
+-La resolución por objetivos es guay. La solución es una secuencia fija de operadores
+-Términos importantes de los problemas:
+	-Configuración
+	-Operadores
+	-Modelo de transición
+	-Prueba de objetivo
+	-Coste de ruta
+
+-Hay que conocer los algoritmos generales, la infraestructura y los criterios de la medida de exito.
+
+
+
+//3. ESTRATEGIAS DE BÚSQUEDA NO INFORMADA
+
+-Hay Distintos algoritmos que dedicen qué nodo debe expandirse primero, se dividen en dos grandes grupos:
+	*Informadas. Cuentan con información extra que les ayuda a saber dónde buscar la solución.
+	*No informadas. Únicamente cuentan con la información del problema
+
+
+-------No informadas--------
+-Se usan cuando no disponemos de estrategias informadas.
+-Si el problema no es muy complejo y con alta capacidad de computación.
+-A veces sirven para hacer pruebas comparativas con otras estrategias.
+
+
+*Se le llaman también estrategias ciegas o de fuerza bruta.
+
+*Solo cuentan con la información del problema:
+	-Solo pueden expandir nodos, generando todos los posibles, e ir ahaciéndoles la prueba de objetivo.
+
+	-Las diferencias entre estrategias están en el orden de expansión
+
+
+-------Recorrido en anchura--------
+
+
+//Devuelve solución o fallo
+función BUSCA-PRIMERO-ANCHURA(Configuracion inicial, Configuracion objetivo):
+{
+	//0 es el coste
+	nodo = new nodo(configuracion inicial,0);
+
+	if (nodo.config = configuracion objetivo)
+		return nodo;
+
+	Cola frontera = new Cola();
+	frontera.push(nodo);
+
+	TablaHash explorados = new TablaHash();
+	
+
+	while()
+	{
+		if(frontera == null)
+			return fallo;
+
+		nodo = frontera.top();
+		frontera.pop();
+
+		explorado.push(nodo);
+
+		for each (nodoAux : operador aplicable a nodo)
+		{
+			nodoAux = nodo.AplicarOperador(a);
+			if (!explorados.contiene(nodoAux) && !frontera.contiene(nodoAux) )
+			{
+				if (nodoAux == Configuracion objetivo)
+					return nodoAux;
+
+				frontera.push(nodoAux);
+			}
+		}
+
+	}
+
+}
+
+
+
+
+//------------DFS---------
+
+-Expande hacia abajo hasta llegar al más profundo y después sube lo justo para seguir expandiendo nodos de hijos profundos
+
+-Sustituye la cola de BUSCA-GRAFO por una pila
+-Otra forma es recursividad.
+
+-La estrategia no es óptima ni completa, puede haber rutas redundantes: Algoritmo profundiza eternamente.
+
+-Lo interesante es un ahorro en espacio(Sobretodo arboles)
+
+-Utiliza vuelta atras:
+	-Solo hay 1 hijo a la vez
+	-Para ahorrar tiempo y memoria, se modifica todo el rato la misma configuración, y se puede ir deshaciendo
+
+//---------Profundidad limitada-----------
+
+-Para que no pete, se añade un límite L
+-Es completa si no está a mucha profundidad
+-No es óptima si el límite es mayor que la profundidad
+-El límite se puede deducir
+
+
+//Devuelve solución, fallo o corte (SIN SOLUCIÓN HASTA EL LÍMITE)
+functión BUSCA-PROFUNDIDAD-LIMITADA(Problema problema, Limite limite)
+{
+	Nodo nodo = new Nodo(ConfIni, problema)
+	return BPL-RECURSIVA()
+
+}
+
+
+

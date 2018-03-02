@@ -525,9 +525,18 @@ functión BPL-RECURSIVA(Nodo nodo, Configuracion final, Limite limite)
 		for each (nodoAux : operador aplicable a nodo)
 		{
 			nodoAux = nodo.AplicarOperador(a);
-			
-
-
+			resultado = BLP-RECURSIVA(hijo, problema, limite-1);
+			if( resultado == corte) {
+				hubo_corte = true;
+			else if(resultado != fallo){
+				return resultado;
+			}
+		}
+		if(hubo_corte){
+			return corte;
+		}
+		else
+			return fallo;
 		}
 
 

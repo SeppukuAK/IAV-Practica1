@@ -19,7 +19,8 @@ public class GameManager : MonoBehaviour
         public int y;
     }
 
-    public enum Direccion { Izquierda, Derecha, Arriba, Abajo, Vacio };
+	//Enumerado con las direcciones que puede tomar la ficha
+    public enum Direccion { Arriba, Izquierda, Abajo, Derecha, Vacio };
 
 	public class Nodo{
 		private int[,] _tab; //Configuración
@@ -35,6 +36,8 @@ public class GameManager : MonoBehaviour
 			_coste = coste;
 
 		}
+
+		//Getters para obtener el tablero, el coste, el padre del nodo y el operador
 
 		public int[,] getTablero(){
 			return _tab;
@@ -68,10 +71,12 @@ public class GameManager : MonoBehaviour
     int[,] _tableroCopia = new int[3, 3];//Para restablecer
 
     Par _posVacia;//Posición de la ficha vacía
-	const float _distancia = 2.57f;
+	const float _distancia = 2.57f;//Distancia entre fichas
 
     GameObject[] _fichas;
 	Stack <Direccion> colaDir;
+
+	bool _puedoMover;//Booleano para detectar si se puede pulsar un botón
 
     //----------------------------------ATRIBUTOS--------------------------------------
 
@@ -81,6 +86,8 @@ public class GameManager : MonoBehaviour
     {
         instance = this;
 
+		_puedoMover = true;
+
         //Buscamos las fichas
         _fichas = GameObject.FindGameObjectsWithTag("Ficha");
 
@@ -88,23 +95,24 @@ public class GameManager : MonoBehaviour
         IComparer myComparer = new NameComparer();
         Array.Sort(_fichas, myComparer);
 
+		//Inicializamos el tablero y lo actualizamos
         IniciaTablero();
 
         UpdateTablero();
     }
 
-
+	//Método de mover fichas después de un tiempo
 	void AvanzaUnPaso()
 	{
-		if (colaDir.Count > 0) 
-		{
-			Direccion dir = colaDir.Pop();
-			IntercambioFichas (ref _posVacia,dir,ref _tablero);
+		if (colaDir.Count > 0) {
+			Direccion dir = colaDir.Pop ();
+			IntercambioFichas (ref _posVacia, dir, ref _tablero);
 			UpdateTablero ();
 
-			Invoke ("AvanzaUnPaso",0.5f) ;
+			Invoke ("AvanzaUnPaso", 0.5f);
 
-		}
+		} else
+			_puedoMover = true;
 
 
 	}
@@ -248,15 +256,12 @@ public class GameManager : MonoBehaviour
                 break;
 
         }
-
-
     }
 
 
 	//Hace una copia de un tablero en otro
 	static void IgualarTablero(ref int[,] tab, int[,] tab2)
 	{
-
 		//Coordenada y
 		for (int i = 0; i < 3; i++)
 		{
@@ -265,9 +270,7 @@ public class GameManager : MonoBehaviour
 			{
 				tab[i, j] = tab2[i, j];
 			}
-
 		}
-
 	}
 
     //Método que devuelve si dos mátrices son iguales
@@ -287,7 +290,6 @@ public class GameManager : MonoBehaviour
 
             i++;
         }
-
         return iguales;
     }
 
@@ -327,6 +329,25 @@ public class GameManager : MonoBehaviour
         //Comprobar izquierda
         if ((posVaciaAux.x >= 1))
         {
+            direcciones[1] = true;
+            numAdy++;
+        }
+        else
+            direcciones[1] = false;
+
+
+        //Comprobar derecha
+        if ((posVaciaAux.x <= 1))
+        {
+            direcciones[3] = true;
+            numAdy++;
+        }
+        else
+            direcciones[3] = false;
+
+        //Comprobar arriba
+        if ((posVaciaAux.y >= 1))
+        {
             direcciones[0] = true;
             numAdy++;
         }
@@ -334,33 +355,14 @@ public class GameManager : MonoBehaviour
             direcciones[0] = false;
 
 
-        //Comprobar derecha
-        if ((posVaciaAux.x <= 1))
-        {
-            direcciones[1] = true;
-            numAdy++;
-        }
-        else
-            direcciones[1] = false;
-
-        //Comprobar arriba
-        if ((posVaciaAux.y >= 1))
+        //Comprobar abajo
+        if ((posVaciaAux.y <= 1))
         {
             direcciones[2] = true;
             numAdy++;
         }
         else
             direcciones[2] = false;
-
-
-        //Comprobar abajo
-        if ((posVaciaAux.y <= 1))
-        {
-            direcciones[3] = true;
-            numAdy++;
-        }
-        else
-            direcciones[3] = false;
 
         return direcciones;
     }
@@ -429,7 +431,7 @@ public class GameManager : MonoBehaviour
             }
             i++;
         }
-
+		//Comprobamos si la ficha se mueve
         if (EsMovible(posFicha))
         {
             _tablero[posFicha.y, posFicha.x] = 0;
@@ -438,7 +440,7 @@ public class GameManager : MonoBehaviour
             //La nueva posición vacía es donde estaba la ficha pulsada
             _posVacia = posFicha;
 
-            //TO DO: Pasa algo si hay victoria
+			//Comprobamos si hemos resuelto el puzzle
             ComprobarVictoria();
 
         }
@@ -477,8 +479,6 @@ public class GameManager : MonoBehaviour
 
         return (contador == 0);
     }
-
-
     //---------------------------MOVER FICHA----------------------------------------
 
 	void BorraTexto()
@@ -487,71 +487,179 @@ public class GameManager : MonoBehaviour
 	}
 
     //---------------------------BOTONES--------------------------------------------
+	//Generamos el algoritmo de búsqueda por anchura al pulsar la tecla de BFS
     public void OnClickBFS() {
+		
+		if (_puedoMover) 
+		{
+			_puedoMover = false;
 
-		Nodo nodo = Bfs(_tablero,_tableroSol);
+			Nodo nodo = Bfs (_tablero, _tableroSol);
 
-		//COLITA
+			colaDir = new Stack <Direccion> ();
 
-		colaDir = new Stack <Direccion> ();
+			if (nodo != null) {
 
-		if (nodo != null) {
-
-			while (nodo.getPadre () != null) {
-				Debug.Log (nodo.getOperador ());
-				colaDir.Push (nodo.getOperador ());
-				nodo = nodo.getPadre ();
-			}
+				while (nodo.getPadre () != null) {
+					colaDir.Push (nodo.getOperador ());
+					nodo = nodo.getPadre ();
+				}
 
 
-			UpdateTablero ();
+				UpdateTablero ();
 
-			Invoke ("AvanzaUnPaso", 0.5f);
-		} 
+				Invoke ("AvanzaUnPaso", 0.5f);
+			} 
 
 		//DEMASIADOS MOVIMIENTOS
 		else {
-			_text.text = "LO SIENTO BFS NO DA PARA TANTO";
-			Invoke ("BorraTexto", 5.0f);
+				_puedoMover = true;
+				_text.text = "LO SIENTO BFS NO DA PARA TANTO";
+				Invoke ("BorraTexto", 5.0f);
+			}
 		}
-
-        //GenerarTableroInicial ();
-        //updateTableroInicial ();
+			
     }
 
-	public void OnClickAleatorio()
-	{
-		IniciaTablero();
+	//Generamos el algoritmo de búsqueda por profundidad al pulsar la tecla de DFS
+	public void OnClickDFS() {
 
-		//Número de iteraciones que la pieza vacía es movida
-		int iteraciones = 15;
+		if (_puedoMover) {
+			_puedoMover = false;
 
-		//Mover las fichas aleatoriamente un número de iteraciones
-		while (iteraciones != 0)
-		{
-			Direccion dir = DameDirRandom();
+			Resultado resultado = Dfs (_tablero, _tableroSol, 20);
 
-			//Muevo el tablero
-			IntercambioFichas(ref _posVacia, dir, ref _tablero);
+			if (resultado.fallo) {
+				_puedoMover = true;
+				_text.text = "EL TABLERO NO TIENE RESULTADO";
+				Invoke ("BorraTexto", 5.0f);
 
-			iteraciones--;
+			} else if (resultado.corte) {
+				_puedoMover = true;
+				_text.text = "CON ESTE NÚMERO DE ITERACIONES NO ALCANZO EL RESULTADO";
+				Invoke ("BorraTexto", 5.0f);
+			} 
+
+			else 
+			{
+				Nodo nodo = resultado.getNodo ();
+				colaDir = new Stack <Direccion> ();
+
+				if (nodo != null)
+				{
+
+					while (nodo.getPadre () != null) {
+						colaDir.Push (nodo.getOperador ());
+						nodo = nodo.getPadre ();
+					}
+
+					UpdateTablero ();
+
+					Invoke ("AvanzaUnPaso", 0.5f);
+				} 
+
+			}
 		}
-
-        IgualarTablero(ref _tableroCopia, _tablero);
-
-        _botonRestablecer.gameObject.SetActive(true);
-        UpdateTablero();
 	}
 
+	//Genera un tablero aleatorio al pulsar el botón de aleatorio
+	public void OnClickAleatorio()
+	{
+		if (_puedoMover) {
+			IniciaTablero ();
+
+			//Número de iteraciones que la pieza vacía es movida
+			int iteraciones = 30;
+
+			//Mover las fichas aleatoriamente un número de iteraciones
+			while (iteraciones != 0) {
+				Direccion dir = DameDirRandom ();
+
+				//Muevo el tablero
+				IntercambioFichas (ref _posVacia, dir, ref _tablero);
+
+				iteraciones--;
+			}
+
+			IgualarTablero (ref _tableroCopia, _tablero);
+
+			_botonRestablecer.gameObject.SetActive (true);
+			UpdateTablero ();
+		}
+	}
+
+	//Reestablece el tablero al pulsar el botón de Reestablecer
     public void OnClickRestablecer()
     {
-        IgualarTablero(ref _tablero, _tableroCopia);
+		if (_puedoMover) {
+			
+			IgualarTablero (ref _tablero, _tableroCopia);
 
-		_posVacia = EncontrarVacio (_tablero);
+			_posVacia = EncontrarVacio (_tablero);
 
-        UpdateTablero();
+			UpdateTablero ();
+		}
     }
     //---------------------------BOTONES--------------------------------------------
+
+	//----------------------------IA----------------------------------------------
+
+	Queue<Nodo> DameAdyacentes(Nodo nodo)
+	{
+		Queue<Nodo> colaAdy = new Queue<Nodo>();//Se crea la cola de nodos
+
+		bool[] ady = new bool[4];
+
+		Par posVacia = EncontrarVacio(nodo.getTablero());
+
+		int numAdy;
+		ady = DameMovimientosPosibles(nodo.getTablero(), posVacia, out numAdy);
+
+		if (UnityEngine.Random.Range (0, 2) == 0) {
+
+			//Buscamos los adyacentes y los procesamos
+			for (int i = 0; i < ady.Length; i++) {
+				Par posVaciaAux;
+				posVaciaAux.x = posVacia.x;
+				posVaciaAux.y = posVacia.y;
+
+				if (ady [i]) {
+					int[,] tabAdy = new int[3, 3];
+					Direccion dir = (Direccion)i;
+					IgualarTablero (ref tabAdy, nodo.getTablero ());
+					IntercambioFichas (ref posVaciaAux, dir, ref tabAdy);
+
+					Nodo aux = new Nodo (tabAdy, nodo, dir, nodo.getCoste () + 1);
+					colaAdy.Enqueue (aux);
+				}
+			}
+		} 
+
+		else 
+		{
+			//Buscamos los adyacentes y los procesamos
+			for (int i = ady.Length-1; i >= 0 ; i--) {
+				Par posVaciaAux;
+				posVaciaAux.x = posVacia.x;
+				posVaciaAux.y = posVacia.y;
+
+				if (ady [i]) {
+					int[,] tabAdy = new int[3, 3];
+					Direccion dir = (Direccion)i;
+					IgualarTablero (ref tabAdy, nodo.getTablero ());
+					IntercambioFichas (ref posVaciaAux, dir, ref tabAdy);
+
+					Nodo aux = new Nodo (tabAdy, nodo, dir, nodo.getCoste () + 1);
+					colaAdy.Enqueue (aux);
+				}
+			}
+
+
+		}
+
+		return colaAdy;
+	}
+
 
     Nodo Bfs(int[,] inicio, int[,] fin)
     {
@@ -571,9 +679,6 @@ public class GameManager : MonoBehaviour
 
 		Hashtable visitados = new Hashtable();
 
-		bool[] ady = new bool[4];
-
-
 		while (nodo.getCoste() <=7) 
 		{
 			if (cola.Count <= 0)
@@ -585,35 +690,9 @@ public class GameManager : MonoBehaviour
 			//La añadimos a visitados
 			visitados.Add (nodo.getTablero().GetHashCode(),null);
 
-			//---------------------
 			//Encontramos todas las configuraciones posibles
-			Queue<Nodo> colaAdy = new Queue<Nodo>();//Se crea la cola de nodos
+			Queue<Nodo> colaAdy = DameAdyacentes(nodo);//Se crea la cola de nodos
 
-			Par posVacia = EncontrarVacio(nodo.getTablero());
-
-			int numAdy;
-			ady = DameMovimientosPosibles(nodo.getTablero(), posVacia, out numAdy);
-
-			//Buscamos los adyacentes y los procesamos
-			for (int i = 0; i < ady.Length; i++) 
-			{
-				Par posVaciaAux;
-				posVaciaAux.x = posVacia.x;
-				posVaciaAux.y = posVacia.y;
-
-				if (ady [i]) {
-					int[,] tabAdy = new int[3, 3];
-					Direccion dir = (Direccion)i;
-					IgualarTablero (ref tabAdy, nodo.getTablero());
-					IntercambioFichas (ref posVaciaAux, dir, ref tabAdy);
-
-					Nodo aux = new Nodo (tabAdy, nodo, dir, nodo.getCoste () + 1);
-					colaAdy.Enqueue (aux);
-				}
-			}
-
-
-			//---------------------
 
 			while (colaAdy.Count > 0) 
 			{
@@ -625,17 +704,93 @@ public class GameManager : MonoBehaviour
 						return nodoAux;
 
 					cola.Enqueue (nodoAux);
-
 				}
-
 			}
-
-
 		}
 
 		return null;
+	}
 
+	//Clase resultado con la configuracion del problema para el DFS
+	class Resultado{
+		private Nodo _nodo;
+		public bool fallo;
+		public bool corte;
 
+		public Nodo getNodo()
+		{
+			return _nodo;
+		}
+
+		public Resultado(Nodo nodo,bool f, bool c){
+			_nodo = nodo;
+			fallo = f;
+			corte = c;
+		}
 
 	}
+
+	//Devuelve null: fallo
+	//Devuelve solución: Nodo cualquiera
+	//Devuelve corte: Nodo con coste -1
+	Resultado Dfs(int[,] inicio, int[,] fin, int limite){
+		int[,] actual = new int[3,3];
+		IgualarTablero(ref actual, inicio);
+
+		Nodo nodo = new Nodo (actual, null, Direccion.Vacio, 0);
+		return RecursividadDFS (nodo,fin,limite);
+	}
+
+	Resultado RecursividadDFS(Nodo nodo, int[,] fin, int limite)
+	{
+		if (TablerosIguales (nodo.getTablero (), fin))
+		{
+			Resultado resultado = new Resultado (nodo,false,false);
+			return resultado;
+		}
+
+		//Devolvemos corte
+		else if (limite == 0) {
+			Resultado corte = new Resultado (null, false, true);
+			return corte;
+		} 
+
+		else 
+		{
+			bool huboCorte = false;
+
+			//Encontramos todas las configuraciones posibles
+			Queue<Nodo> colaAdy = DameAdyacentes(nodo);//Se crea la cola de nodos
+
+			while (colaAdy.Count > 0) 
+			{
+				Nodo nodoAux = colaAdy.Dequeue();
+
+				Resultado resultado = RecursividadDFS (nodoAux, fin, limite - 1);
+
+				//Si resultado es corte
+				if (resultado.corte)
+					huboCorte = true;
+				
+				else if (!resultado.fallo) 
+					return resultado;
+				
+			}
+			if (huboCorte) {
+				Resultado corte = new Resultado (null, false, true);
+				return corte;
+			}
+
+			//Devolver fallo
+			else 
+			{
+				Resultado fallo = new Resultado (null, true, false);
+				return fallo;
+
+			}
+		}
+	}
+		
+	//----------------------------IA----------------------------------------------
+
 }

@@ -503,12 +503,37 @@ función BUSCA-PRIMERO-ANCHURA(Configuracion inicial, Configuracion objetivo):
 
 
 //Devuelve solución, fallo o corte (SIN SOLUCIÓN HASTA EL LÍMITE)
-functión BUSCA-PROFUNDIDAD-LIMITADA(Problema problema, Limite limite)
+functión BUSCA-PROFUNDIDAD-LIMITADA(Configuracion inicial, Configuracion final, Limite limite)
 {
-	Nodo nodo = new Nodo(ConfIni, problema)
-	return BPL-RECURSIVA()
+	Nodo nodo = new Nodo(inicial,0)
+	return BPL-RECURSIVA(nodo,final,limite)
 
 }
 
+//Devuelve solución, fallo o corte (SIN SOLUCIÓN HASTA EL LÍMITE)
+functión BPL-RECURSIVA(Nodo nodo, Configuracion final, Limite limite)
+{
+	if (nodo.config = configuracion objetivo)
+		return nodo;
+
+	else if (limite == 0)
+		return corte
+
+	else
+	{
+		bool huboCorte = false;
+		for each (nodoAux : operador aplicable a nodo)
+		{
+			nodoAux = nodo.AplicarOperador(a);
+			
+
+
+		}
+
+
+	}
+
+
+}
 
 

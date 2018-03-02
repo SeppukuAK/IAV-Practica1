@@ -59,11 +59,14 @@ public class GameManager : MonoBehaviour
     //----------------------------------ATRIBUTOS--------------------------------------
 
 	public Text _text;
+    public Button _botonRestablecer;
 
     public static GameManager instance;
 
     int[,] _tablero = new int[3, 3];//Lógica del juego
     int[,] _tableroSol = new int[3, 3];//Tablero solución
+    int[,] _tableroCopia = new int[3, 3];//Para restablecer
+
     Par _posVacia;//Posición de la ficha vacía
 	const float _distancia = 2.57f;
 
@@ -478,6 +481,11 @@ public class GameManager : MonoBehaviour
 
     //---------------------------MOVER FICHA----------------------------------------
 
+	void BorraTexto()
+	{
+		_text.text = "";
+	}
+
     //---------------------------BOTONES--------------------------------------------
     public void OnClickBFS() {
 
@@ -503,8 +511,8 @@ public class GameManager : MonoBehaviour
 
 		//DEMASIADOS MOVIMIENTOS
 		else {
-			_text.text = "LO SIENTO BFS ES UNA MIERDA";
-
+			_text.text = "LO SIENTO BFS NO DA PARA TANTO";
+			Invoke ("BorraTexto", 5.0f);
 		}
 
         //GenerarTableroInicial ();
@@ -529,10 +537,20 @@ public class GameManager : MonoBehaviour
 			iteraciones--;
 		}
 
-		UpdateTablero();
+        IgualarTablero(ref _tableroCopia, _tablero);
 
-
+        _botonRestablecer.gameObject.SetActive(true);
+        UpdateTablero();
 	}
+
+    public void OnClickRestablecer()
+    {
+        IgualarTablero(ref _tablero, _tableroCopia);
+
+		_posVacia = EncontrarVacio (_tablero);
+
+        UpdateTablero();
+    }
     //---------------------------BOTONES--------------------------------------------
 
     Nodo Bfs(int[,] inicio, int[,] fin)

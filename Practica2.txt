@@ -39,8 +39,8 @@ ENUNCIADO
 -Solo 1 unidades seleccionada. Se ilumina
 
 -Casillas:
-	*Casilla normal de tierra.
-	*Casilla embarrada.
+	*Casilla normal de tierra. Moverse cuesta 1
+	*Casilla embarrada. Moverse cuesta 2 -> La unidad entra a la mitad de velocidad
 	*Casilla bloqueada (MURO)
 
 -Unidades:
@@ -59,5 +59,82 @@ Input:
 		Normal -> Embarrada -> Bloqueada
 
 	-Si haces click en una unidad para a ser seleccionada. Con la unidad seleccionada puedes hacer click en terreno:
+		-Casilla normal o embarrada:
+			*A la casilla se le añade la flecha correspondiente. 
+			*La unidad tiene un objetivo asignado y se planifica su ruta y se pone a perseguirla.
+			*La unidad deja de estar seleccionada
+			*Cuando alcanza la casilla objetivo o se encuentra un bloqueo inesperado -> Para y deja de tener un objetivo asignado
+
+		-Casilla bloqueada: Se deselecciona la unidad
+		-Click en una unidad: No hace nada.
+
+
 
 	
+RESTRICCIONES ESPECIALES
+------------------------
+
+-Crear un único resolutor: Recibe problemas (rutas a planificar) y devuelve soluciones (secuencia de pasos):
+	-Al planificar la ruta solo se considera el tablero: Se ignoran las unidades
+	-Usar A* o alguna variante con buena heurística
+
+-Separar el update re Unity de la IA que programemos:
+	-Que el rendimiento sea bueno
+
+PISTAS Y CONSEJOS
+-----------------
+
+-Para la IA debemos usar corrutinas o otro hilo:
+
+CORRUTINAS
+----------
+
+//esto es lo que haríamos siempre
+void EjecutaIA() {
+	 for (...) {
+		 ...
+		 // Hará todos los pasos
+		 en un mismo Update
+	 }
+}
+
+//Pero utilizaremos corrutinas así
+IEnumerator EjecutaIA() {
+	 for (...) {
+		 …
+		 yield return null;
+		 // Sólo dará un paso
+		 en cada Update
+	 }
+}
+
+-Se llama con StartCoroutine("EjecutaIA");
+-Podemos esperar entre paso y paso: yield return new WaitForSeconds(.1f);
+
+
+EJECUCIÓN MULTIHILO  - MUY CHUNGO CORRUTINAS Y ME COMES LA POLLA ALA PUTAQ
+-------------------
+
+-Incluir using System.Threading
+
+-En el evento Start de gameobject ponemos en marcha un nuevo hilo:
+	hilo = new Thread(Run); hilo.Start();
+
+-Run() es el método donde va el resolutor
+
+
+
+REFERENCIAS
+-----------
+
+Pathfinding en HTML5
+-http://buildnewgames.com/astar/
+
+
+MEJORAS
+-------
+
+-Dibujar la ruta planificada con una línea de color
+-Recalcular cada vez que hay bloqueo
+-Permitir que se siga a otra unidad (Pegar una flecha de objetivo encima)
+

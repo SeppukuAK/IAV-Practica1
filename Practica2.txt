@@ -1,0 +1,63 @@
+--------------Taller 2.  Movimiento de la IA en un tablero-------------
+
+-Los enemigos se mueven y te persiguen
+
+-Muchos juegos 3D tienen por debajo un tablero 2D de casillas
+
+
+---------PROBLEMA--------
+
+-Usamos enfoque Resolutor
+
+-El marco de trabajo es un problema de búsqueda de la casilla objetivo
+	*Hay que definir la estructura del tablero y la infraestructura en función del problema
+
+-Buscar una buena heurística y resolverlo mediante estrategia informada : A*
+
+-MEJORA: Probar otras heurísticas o variantes de A*. Para ver los límites de tiempo o de memoria.
+
+-Para mantener un buen framerate: El algoritmo se actualiza cada x tiempo o casillas
+
+
+--------EJEMPLOS-------
+
+-Pueden existir diferentes tableros: cuadrados o hexagonales según el juego, no influye la vista del juego(3D, isométrico, 2D)
+
+-Existen diferentes formas de la manera en que se realiza la ruta: Por ejemplo pac-man
+
+
+--------PRÁCTICA---------
+
+Control de unidades RTS
+
+ENUNCIADO
+---------
+
+-Programar prototipo de IA que planifique la ruta de 3 unidades diferentes que el jugador puede mover librebremente en un tablero 10x10
+
+-Las unidades no pueden compartir casilla y colisionan.
+-Solo 1 unidades seleccionada. Se ilumina
+
+-Casillas:
+	*Casilla normal de tierra.
+	*Casilla embarrada.
+	*Casilla bloqueada (MURO)
+
+-Unidades:
+	*Roja.
+	*Verde.
+	*Azul
+
+-Flechas.
+	-Una para cada unidad
+	-Pueden compartir casilla 
+	-Marcan la casilla objetivo de la unidad de color correspondiente
+
+
+Input:
+	-Si haces click sin una unidad seleccionada en el terreno, se sigue este ciclo:
+		Normal -> Embarrada -> Bloqueada
+
+	-Si haces click en una unidad para a ser seleccionada. Con la unidad seleccionada puedes hacer click en terreno:
+
+	
